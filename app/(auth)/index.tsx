@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import Button from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useLogin } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
 import Input from '@/components/ui/input';
 import Icon from "react-native-remix-icon";
@@ -9,18 +9,22 @@ import Icon from "react-native-remix-icon";
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { mutate: login, isSuccess } = useLogin();
   const router = useRouter();
 
   const handleLogin = async () => {
     try {
-      await login(email, password);
-      router.push('/dashboard');
+      await login({ email, password });
     } catch (error) {
-      console.log(error);
       alert('Login failed');
     }
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      router.push('/dashboard');
+    }
+  }, [isSuccess]);
 
   return (
     <View style={styles.container}>
@@ -47,7 +51,7 @@ export default function Login() {
         prefixComponent={<Icon name="key-2-line" size={18} color="#3B82F6" />}
       />
       <View style={styles.buttonContainer}>
-        <Button variant="text" onPress={() => router.push('/auth/forgot-password')}>Forgot Password?</Button>
+        <Button variant="text" onPress={() => router.push('/forgot-password')}>Forgot Password?</Button>
       </View>
       <Button onPress={handleLogin} block>Sign In</Button>
     </View>

@@ -1,14 +1,12 @@
+import { parseSnakeToCamel } from "@/utils/parseSnakeToCamel";
+import { api } from "./api";
+
 export const authService = {
   login: async (email: string, password: string) => {
     try {
-    //   const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    //   return userCredential.user;
-    return {
-        user: {
-            email: email,
-            password: password,
-        },
-    };
+      const response = await api.post('/login', { email, password });
+      const user = parseSnakeToCamel(response.data);
+      return user;
     } catch (error) {
       throw new Error('Login failed');
     }

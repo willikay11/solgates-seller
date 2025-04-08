@@ -1,12 +1,13 @@
 import Divider from '@/components/ui/divider';
+import * as SecureStore from 'expo-secure-store';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/modal';
 import Input from '@/components/ui/input';
 import { router } from 'expo-router';
-
+import { User } from '@/types/user';
 const products = [
     {
         name: 'Beano Originals Classic Striped Red Shirt',
@@ -44,6 +45,22 @@ export default function Dashboard() {
     const [menuVisible, setMenuVisible] = useState(false);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
     const [amount, setAmount] = useState('');
+    const [user, setUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const userData = await SecureStore.getItemAsync('user');
+                if (userData) {
+                    setUser(JSON.parse(userData));
+                }
+            } catch (error) {
+                console.error('Failed to load user:', error);
+            }
+        };
+
+        fetchUser();
+    }, []);
 
     return (
         <ScrollView style={styles.scrollContainer}>
@@ -90,7 +107,7 @@ export default function Dashboard() {
             </Modal>
             <View style={styles.container}>
             <View style={styles.headerContainer}>
-                <Text style={styles.headerText}>Vans & Chucktaylors</Text>
+                <Text style={styles.headerText}>{user?.storeName}</Text>
                 <View style={styles.headerIconContainer}>
                     <Icon name="notification-3-line" size={20} color="#EA580C" />
                 </View>
