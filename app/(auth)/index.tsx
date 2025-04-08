@@ -9,7 +9,7 @@ import Icon from "react-native-remix-icon";
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { mutate: login, isSuccess } = useLogin();
+  const { mutate: login, isSuccess, isPending: isSigningIn } = useLogin();
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -53,7 +53,7 @@ export default function Login() {
       <View style={styles.buttonContainer}>
         <Button variant="text" onPress={() => router.push('/forgot-password')}>Forgot Password?</Button>
       </View>
-      <Button onPress={handleLogin} block>Sign In</Button>
+      <Button onPress={handleLogin} block loading={isSigningIn} disabled={isSigningIn}>Sign In</Button>
     </View>
   );
 }

@@ -1,16 +1,18 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, ActivityIndicator } from 'react-native';
 
 // Define the types for the Button props
 type ButtonProps = {
   variant?: 'primary' | 'secondary' | 'text'; // Accepts 'primary' or 'secondary'
   block?: boolean;
   onPress: () => void;
+  disabled?: boolean;
+  loading?: boolean;
   children: React.ReactNode; // The content inside the button (usually a label)
   style?: StyleProp<ViewStyle>;
 };
 
-const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children, block = false, style }) => {
+const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children, block = false, style, disabled = false, loading = false }) => {
   // Apply the styles based on the variant prop
   let buttonStyle;
   let textStyle;
@@ -34,8 +36,12 @@ const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children,
   }
 
   return (
-    <TouchableOpacity style={[styles.button, block && styles.blockButton, buttonStyle, style]} onPress={onPress}>
-      <Text style={[styles.text, textStyle]}>{children}</Text>
+    <TouchableOpacity style={[styles.button, block && styles.blockButton, buttonStyle, style]} onPress={onPress} disabled={disabled}>
+      {loading ? (
+        <ActivityIndicator size="small" color="#fff" />
+      ) : (
+        <Text style={[styles.text, textStyle]}>{children}</Text>
+      )}
     </TouchableOpacity>
   );
 };

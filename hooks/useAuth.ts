@@ -14,7 +14,7 @@ export const useLogin = () => useMutation({
       phoneNumber: data.phoneNumber,
       email: data.email,
       phoneIsVerified: data.phoneIsVerified,
-      emailIsVerified: data.emailIsVerified,  
+      emailIsVerified: data.emailIsVerified,
       storeName: data.storeName,
       storeId: data.storeId,
       accessToken: data.accessToken,

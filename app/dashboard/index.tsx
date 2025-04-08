@@ -1,7 +1,7 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
 import { useEffect, useState } from 'react';
@@ -9,7 +9,7 @@ import { Modal } from '@/components/ui/modal';
 import Input from '@/components/ui/input';
 import { router } from 'expo-router';
 import { User } from '@/types/user';
-import { useWallet } from '@/hooks/useWallet';
+import { useWallet, useWithdraw } from '@/hooks/useWallet';
 import numeral from 'numeral';
 import { useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
@@ -24,6 +24,17 @@ export default function Dashboard() {
     const [user, setUser] = useState<User | null>(null);
     const [amount, setAmount] = useState('');
     const { data: products, isFetching } = useProducts(user?.storeId, page);
+    const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess } = useWithdraw();
+
+    const handleWithdraw = () => {
+        withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
+    }
+
+    useEffect(() => {
+        if (isWithdrawSuccess) {
+            setWithdrawVisible(false);
+        }
+    }, [isWithdrawSuccess]);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -84,15 +95,15 @@ export default function Dashboard() {
                         <Text style={styles.withdrawTextBold}>NOTE:</Text> Transaction cost of KES 20.00 will be charged.
                     </Text>
                     <View style={styles.withdrawTextContainer}>
-                        <Text style={styles.withdrawText}><Text style={styles.withdrawTextBold}>Withdrawal Number:</Text> +254712345678</Text>
+                        <Text style={styles.withdrawText}><Text style={styles.withdrawTextBold}>Withdrawal Number:</Text> +{user?.phoneNumber}</Text>
                     </View>
                     <View style={styles.inputContainer}>
                         <Input prefixComponent={<Icon name="hand-coin-line" size={14} color="#10B981" />} placeholder="Amount" value={amount} onChangeText={setAmount} /> 
                     </View>
                     <View style={styles.walletBalanceContainer}>
-                        <Text style={styles.walletModalBalanceText}>Wallet Balance: KES 67,123.10</Text>
+                        <Text style={styles.walletModalBalanceText}>Wallet Balance: KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
                     </View>
-                    <Button variant="primary" onPress={() => setWithdrawVisible(false)}>
+                    <Button variant="primary" onPress={handleWithdraw} loading={isWithdrawing} disabled={isWithdrawing}>
                         <Text style={styles.buttonText}>Withdraw Cash</Text>
                     </Button>
                 </View>
