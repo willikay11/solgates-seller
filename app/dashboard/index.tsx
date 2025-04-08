@@ -8,6 +8,9 @@ import { Modal } from '@/components/ui/modal';
 import Input from '@/components/ui/input';
 import { router } from 'expo-router';
 import { User } from '@/types/user';
+import { useWallet } from '@/hooks/useWallet';
+import numeral from 'numeral';
+
 const products = [
     {
         name: 'Beano Originals Classic Striped Red Shirt',
@@ -44,6 +47,7 @@ const products = [
 export default function Dashboard() {
     const [menuVisible, setMenuVisible] = useState(false);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
+    const { data: wallet } = useWallet();
     const [amount, setAmount] = useState('');
     const [user, setUser] = useState<User | null>(null);
 
@@ -115,7 +119,7 @@ export default function Dashboard() {
             <Divider width={12} height={2} />
             <View style={styles.walletContainer}>
                 <Text style={styles.contentHeaderText}>Wallet Balance</Text>
-                <Text style={styles.walletBalanceText}>KES 67,123.10</Text>
+                <Text style={styles.walletBalanceText}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
             </View>
             <View style={styles.actionContainer}>
                 <Button variant="primary" onPress={() => router.push('/products/add')} style={styles.primaryButton}>

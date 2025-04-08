@@ -1,14 +1,9 @@
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { walletService } from "@/services/wallet";
 
 export const useWallet = () => {
-
-    const getWallet = async () => {
-        const response = await axios.get('http://localhost:3000/api/v1/wallet/view');
-        console.log(response.data);
-        return response.data;
-    };  
-
-    return {
-        getWallet,
-    };
+    return useQuery({
+        queryKey: ['wallet'],
+        queryFn: () => walletService.getWallet(),
+    });
 };
