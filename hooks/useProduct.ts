@@ -1,12 +1,10 @@
-import axios from "axios";
+import { productService } from "@/services/product";
+import { useQuery } from "@tanstack/react-query";
 
-export const useProduct = () => {
-    const getProducts = async () => {
-        const response = await axios.get('http://localhost:3000/api/v1/products');
-        return response.data;
-    };
-
-    return {
-        getProducts,
-    };
+export const useProducts = (storeId?: string, page: number = 1) => {
+    return useQuery({
+        queryKey: ['products', storeId, page],
+        queryFn: () => productService.getProducts(storeId, page),
+        enabled: !!storeId,
+    });
 };

@@ -1,6 +1,7 @@
+import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
 import { useEffect, useState } from 'react';
@@ -10,46 +11,19 @@ import { router } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet } from '@/hooks/useWallet';
 import numeral from 'numeral';
-
-const products = [
-    {
-        name: 'Beano Originals Classic Striped Red Shirt',
-        price: 7100,
-        image: require('@/assets/images/image.png')
-    },
-    {
-        name: 'Plain Black Tee Leaves Printed Sleeves',
-        price: 7100,
-        image: require('@/assets/images/image.png')
-    },
-    {
-        name: 'Cotton Blended Pale Yellow T-Shirt',
-        price: 7100,
-        image: require('@/assets/images/image.png')
-    },
-    {
-        name: 'Penn Sport "USA" Special Tee',
-        price: 7100,
-        image: require('@/assets/images/image.png')
-    },
-    {
-        name: 'Pure Energy Yellow T-Shirt',
-        price: 7100,
-        image: require('@/assets/images/image.png')
-    },
-    {
-        name: 'Nike Flow 2020 ISPA SE',
-        price: 7100,
-        image: require('@/assets/images/image.png')
-    },
-]
+import { useProducts } from '@/hooks/useProduct';
+import { Product } from '@/types/product';
+import { Meta } from '@/types/meta';
 
 export default function Dashboard() {
     const [menuVisible, setMenuVisible] = useState(false);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
     const { data: wallet } = useWallet();
-    const [amount, setAmount] = useState('');
+    const [productList, setProductList] = useState<Product[]>([]);
+    const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
+    const [amount, setAmount] = useState('');
+    const { data: products, isFetching } = useProducts(user?.storeId, page);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -66,8 +40,22 @@ export default function Dashboard() {
         fetchUser();
     }, []);
 
+    const isProductArray = (products: any): products is Product[] => {
+        return Array.isArray(products);
+    };
+
+    const hasMeta = (products: any): products is { meta: Meta } => {
+        return products && typeof products.meta === 'object' && 'total' in products.meta;
+    };
+
+    useEffect(() => {
+        if (isProductArray(products?.products)) {
+            setProductList([...productList, ...products.products]);
+        }
+    }, [products]);
+    
     return (
-        <ScrollView style={styles.scrollContainer}>
+        <>
             <Modal modalVisible={menuVisible} setModalVisible={setMenuVisible} title="Menu" >
                 <View>
                     <TouchableOpacity style={styles.modalItem}>
@@ -141,28 +129,50 @@ export default function Dashboard() {
             </View>
             <Divider width="100%" height={1} color="#F3F4F6" />
             <View style={styles.productContainer}>
-                <Text style={styles.productHeaderText}>Your Stock (32 Products)</Text>
+                <Text style={styles.productHeaderText}>Your Stock ({hasMeta(products) ? products.meta.total : 0} Products)</Text>
                 <View style={styles.productListContainer}>
-                    {products.map((product, index) => (
-                        <View key={index} style={styles.productItem}>
-                            <Image source={product.image} style={styles.productImage} /> 
+                    <FlatList
+                        data={productList}
+                        keyExtractor={(_, index) => index.toString()}
+                        onEndReached={() => {
+                            if (hasMeta(products) && products.meta.currentPage < products.meta.lastPage) {
+                                console.log('current page', products.meta.currentPage);
+                                console.log('last page', products.meta.lastPage);
+                                setPage(products.meta.currentPage + 1);
+                            }
+                        }}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={() => {
+                            if (isFetching) {
+                                return (
+                                    <View style={styles.footerContainer}>
+                                        <ActivityIndicator size="large" color="#EA580C" />
+                                    </View>
+                                )
+                            }
+                            return null;
+                        }}
+                        renderItem={({ item }: { item: Product }) => (
+                            <View style={styles.productItem}>
+                            <Image source={{ uri: item.productImageUrls[0].url }} style={styles.productImage} />
                             <View style={styles.productItemTextContainerLeft}>
                                 <View style={styles.productItemTextContainer}>
-                                    <Text style={styles.productItemText}>{product.name}</Text>
-                                    <Text style={styles.productItemTextDescription}>XL | Men</Text>
-                                    <Text style={styles.productItemText}>KES 7,100</Text>
+                                    <Text style={styles.productItemText}>{item.name}</Text>
+                                    <Text style={styles.productItemTextDescription}>{item.size.name} | {item.genders.map(gender => gender.name).join(', ')}</Text>
+                                    <Text style={styles.productItemText}>KES {numeral(item.price).format('0,0.00')}</Text>
                                 </View>
                                 <View style={styles.productItemActionContainer}>
                                     <TouchableOpacity onPress={() => setMenuVisible(true)}>
-                                        <Icon name="more-2-fill" size={20} color="#EA580C" />   
+                                        <Icon name="more-2-fill" size={20} color="#EA580C" />
                                     </TouchableOpacity>
-                                </View> 
+                                </View>
                             </View>
                         </View>
-                    ))}
+                        )}
+                    />
                 </View>
             </View>
-        </ScrollView>
+        </>
     )
 }
 
@@ -172,7 +182,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
     },
     container: {
-        padding: 20
+        padding: 20,
+        backgroundColor: 'white',
     },
     headerContainer: {
         flexDirection: 'row',
@@ -240,7 +251,8 @@ const styles = StyleSheet.create({
         color: '#FFFFFF'
     },
     productContainer: {
-        padding: 20
+        padding: 20,
+        backgroundColor: 'white',
     },
     productHeaderText: {
         fontSize: 16,
@@ -254,7 +266,7 @@ const styles = StyleSheet.create({
     productItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        marginBottom: 10,
     },
     productItemTextContainer: {
         flexDirection: 'column',
@@ -279,7 +291,8 @@ const styles = StyleSheet.create({
     productImage: {
         width: 80,
         height: 80,
-        borderRadius: 10
+        borderRadius: 10,
+        marginRight: 10
     },
     productItemActionContainer: {
         flexDirection: 'row',
@@ -325,6 +338,11 @@ const styles = StyleSheet.create({
     walletModalBalanceText: {
         fontSize: 12,
         fontWeight: 'normal',
-        color: '#6B7280'
+        color: '#6B7280',
+    },
+    footerContainer: {
+        marginTop: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
     }
 })
