@@ -1,11 +1,15 @@
 import { parseSnakeToCamel } from "@/utils/parseSnakeToCamel";
 import { api } from "./api";
+import { User } from "@/types/user";
 
 export const authService = {
   login: async (email: string, password: string) => {
     try {
       const response = await api.post('/login', { email, password });
-      const user = parseSnakeToCamel(response.data);
+      const user: User = parseSnakeToCamel(response.data);
+      if (user.accountTypeName.toLowerCase() !== 'seller') {
+        throw new Error('You are not authorized to access this application');
+      }
       return user;
     } catch (error) {
       throw new Error('Login failed');

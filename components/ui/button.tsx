@@ -1,14 +1,14 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, ActivityIndicator, Keyboard } from 'react-native';
 
 // Define the types for the Button props
 type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'text'; // Accepts 'primary' or 'secondary'
+  variant?: 'primary' | 'secondary' | 'text' | 'icon';
   block?: boolean;
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
-  children: React.ReactNode; // The content inside the button (usually a label)
+  children: React.ReactNode; 
   style?: StyleProp<ViewStyle>;
 };
 
@@ -30,13 +30,19 @@ const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children,
       buttonStyle = styles.textButton;
       textStyle = styles.linkText;
       break;
+    case 'icon':
+      buttonStyle = styles.iconButton;
+      break;
     default:
       buttonStyle = styles.primaryButton;
       textStyle = styles.primaryText;
   }
 
   return (
-    <TouchableOpacity style={[styles.button, block && styles.blockButton, buttonStyle, style]} onPress={onPress} disabled={disabled}>
+    <TouchableOpacity style={[styles.button, block && styles.blockButton, buttonStyle, style]} onPress={() => {
+      Keyboard.dismiss();
+      onPress();
+    }} disabled={disabled}>
       {loading ? (
         <ActivityIndicator size="small" color="#fff" />
       ) : (
@@ -54,7 +60,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
     height: 55,
   },
   blockButton: {
@@ -69,6 +74,16 @@ const styles = StyleSheet.create({
   textButton: {
     backgroundColor: 'transparent',
     height: 40,
+  },
+  iconButton: {
+    backgroundColor: 'transparent',
+    height: 50,
+    width: 50,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 0,
+    paddingHorizontal: 0,
   },
   text: {
     fontSize: 12,

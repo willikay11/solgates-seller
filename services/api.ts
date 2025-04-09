@@ -7,7 +7,8 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-  const accessToken = await SecureStore.getItemAsync('accessToken');
+  const user = await SecureStore.getItemAsync('user');
+  const accessToken = JSON.parse(user ?? '{}').accessToken;
 
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -18,7 +19,7 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.log(error);
+    // console.log(error);
     if (error.response.status === 401) {
       SecureStore.deleteItemAsync('accessToken');
       window.location.href = '/login';

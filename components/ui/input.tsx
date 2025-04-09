@@ -7,6 +7,7 @@ type InputProps = {
   onChangeText: (text: string) => void;
   placeholder: string;
   type?: 'text' | 'password';
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   prefixComponent?: React.ReactNode;
 };
 
@@ -16,6 +17,7 @@ const Input: React.FC<InputProps> = ({
   placeholder,
   type = 'text',
   prefixComponent,
+  keyboardType = 'default',
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -33,12 +35,13 @@ const Input: React.FC<InputProps> = ({
         placeholder={placeholder}
         secureTextEntry={type === 'password' && !isPasswordVisible}
         style={styles.input}
+        keyboardType={keyboardType}     
       />
 
       {/* Show toggle icon only for password input */}
       {type === 'password' && (
         <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
-          {isPasswordVisible ? <Icon name="eye-line" size={24} color="gray" /> : <Icon name="eye-close-line" size={24} color="gray" />}
+          {isPasswordVisible ? <Icon name="eye-line" size={18} color="gray" /> : <Icon name="eye-close-line" size={18} color="gray" />}
         </TouchableOpacity>
       )}
     </View>

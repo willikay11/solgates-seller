@@ -14,17 +14,19 @@ import numeral from 'numeral';
 import { useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
 import { Meta } from '@/types/meta';
+import Toast from 'react-native-toast-message';
 
 export default function Dashboard() {
     const [menuVisible, setMenuVisible] = useState(false);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
+    const [isWalletAmountVisible, setIsWalletAmountVisible] = useState(false);
     const { data: wallet } = useWallet();
     const [productList, setProductList] = useState<Product[]>([]);
     const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
     const [amount, setAmount] = useState('');
     const { data: products, isFetching } = useProducts(user?.storeId, page);
-    const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess } = useWithdraw();
+    const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
 
     const handleWithdraw = () => {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
@@ -33,8 +35,20 @@ export default function Dashboard() {
     useEffect(() => {
         if (isWithdrawSuccess) {
             setWithdrawVisible(false);
+            Toast.show({
+                type: 'success',
+                text1: 'Cash Withdrawal successful',
+                text2: `Your withdrawal of KES ${numeral(amount).format('0,0.00')} to mobile number ${user?.phoneNumber} was processed successfully`,
+            });
+            setAmount('');
+        } else if (isWithdrawError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Withdrawal failed',
+                text2: 'Please try again',
+            });
         }
-    }, [isWithdrawSuccess]);
+    }, [isWithdrawSuccess, isWithdrawError]);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -98,7 +112,7 @@ export default function Dashboard() {
                         <Text style={styles.withdrawText}><Text style={styles.withdrawTextBold}>Withdrawal Number:</Text> +{user?.phoneNumber}</Text>
                     </View>
                     <View style={styles.inputContainer}>
-                        <Input prefixComponent={<Icon name="hand-coin-line" size={14} color="#10B981" />} placeholder="Amount" value={amount} onChangeText={setAmount} /> 
+                        <Input prefixComponent={<Icon name="hand-coin-line" size={14} color="#10B981" />} placeholder="Amount" value={amount} onChangeText={setAmount} keyboardType="numeric" /> 
                     </View>
                     <View style={styles.walletBalanceContainer}>
                         <Text style={styles.walletModalBalanceText}>Wallet Balance: KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
@@ -118,7 +132,18 @@ export default function Dashboard() {
             <Divider width={12} height={2} />
             <View style={styles.walletContainer}>
                 <Text style={styles.contentHeaderText}>Wallet Balance</Text>
-                <Text style={styles.walletBalanceText}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
+                <View style={styles.dashboardWalletBalanceContainer}>
+                    {
+                        isWalletAmountVisible ? (
+                            <Text style={styles.walletBalanceText}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
+                        ) : (
+                            <Text style={styles.walletBalanceText}>********</Text>
+                        )
+                    }
+                    <TouchableOpacity onPress={() => setIsWalletAmountVisible(!isWalletAmountVisible)}>
+                        {isWalletAmountVisible ? <Icon name="eye-line" size={20} color="#1F2937" /> : <Icon name="eye-close-line" size={20} color="#1F2937" />}
+                    </TouchableOpacity>
+                </View>
             </View>
             <View style={styles.actionContainer}>
                 <Button variant="primary" onPress={() => router.push('/products/add')} style={styles.primaryButton}>
@@ -133,8 +158,8 @@ export default function Dashboard() {
                         <Text style={styles.buttonText}>Withdraw Cash</Text>
                     </View>
                 </Button>
-                <Button variant="secondary" onPress={() => {}} style={styles.iconButton}>
-                    <Icon name="share-line" size={30} color="#FFFFFF" />
+                <Button variant="icon" onPress={() => {}} style={styles.iconButton}>
+                    <Icon name="share-line" size={16} color="#ffffff" />
                 </Button>
             </View>
             </View>
@@ -203,8 +228,8 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     headerText: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 24,
+        fontWeight: '800',
         color: '#1F2937'
     },
     headerIconContainer: {
@@ -221,18 +246,17 @@ const styles = StyleSheet.create({
     },
     contentHeaderText: {
         fontSize: 12,
-        fontWeight: 'normal',
+        fontWeight: '500',
         color: '#6B7280'
     },
     walletBalanceText: {
         fontSize: 30,
-        fontWeight: 'bold',
+        fontWeight: '800',
         color: '#1F2937'
     },
     actionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 10
     },
     primaryButton: {
         marginRight: 5,
@@ -245,11 +269,7 @@ const styles = StyleSheet.create({
     },
     iconButton: {
         marginLeft: 5,
-        borderRadius: 50,
-        width: 50,
-        height: 50, 
-        justifyContent: 'center',
-        alignItems: 'center'
+        backgroundColor: '#3B82F6',
     },
     buttonContent: {
         flexDirection: 'row',
@@ -267,7 +287,7 @@ const styles = StyleSheet.create({
     },
     productHeaderText: {
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '800',
         color: '#1F2937'
     },
     productListContainer: {
@@ -291,12 +311,12 @@ const styles = StyleSheet.create({
     },
     productItemText: {
         fontSize: 12,
-        fontWeight: 'semibold',
+        fontWeight: '600',
         color: '#1F2937'
     },
     productItemTextDescription: {
         fontSize: 12,
-        fontWeight: 'normal',
+        fontWeight: '500',
         color: '#6B7280'
     },
     productImage: {
@@ -330,7 +350,7 @@ const styles = StyleSheet.create({
     },
     withdrawText: {
         fontSize: 12,
-        fontWeight: 'normal',
+        fontWeight: '700',
         color: '#1F2937'
     },
     withdrawTextBold: {
@@ -341,6 +361,13 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 10
     },
+    dashboardWalletBalanceContainer: {
+        flexDirection: 'row',
+        marginBottom: 10,
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        gap: 10
+    },
     walletBalanceContainer: {
         flexDirection: 'row',
         marginBottom: 10,
@@ -348,12 +375,12 @@ const styles = StyleSheet.create({
     },
     walletModalBalanceText: {
         fontSize: 12,
-        fontWeight: 'normal',
+        fontWeight: '500',
         color: '#6B7280',
     },
     footerContainer: {
         marginTop: 10,
         alignItems: 'center',
         justifyContent: 'center',
-    }
+    },
 })
