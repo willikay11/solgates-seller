@@ -5,11 +5,18 @@ import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { StatusBar } from 'react-native';
+import CustomToast from '@/components/ui/custom-toast';
 SplashScreen.preventAutoHideAsync();
+
+const toastConfig = {
+  success: (props: any) => <CustomToast {...props} />,
+  error: (props: any) => <CustomToast {...props} />,
+};
 
 export const unstable_settings = {
   initialRouteName: "(auth)/index",
 };
+
 
 const queryClient = new QueryClient();
 
@@ -36,7 +43,7 @@ export default function RootLayout() {
         <Stack.Screen name="dashboard/index" options={{ headerShown: false }} />
         <Stack.Screen name="products/add" options={{ headerShown: false }} />
       </Stack>
-      <Toast />
+      <Toast config={toastConfig} />
     </QueryClientProvider>
   );
 }
