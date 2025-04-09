@@ -73,6 +73,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 8,
     fontSize: 12,
+    color: '#9CA3AF',
   },
   iconContainer: {
     paddingHorizontal: 10,
