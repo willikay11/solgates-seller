@@ -1,22 +1,27 @@
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
 import { Checkbox } from "react-native-paper";
 
 export type CheckedItems = {
     [key: string]: boolean;
 };
 
-export default function CategoryList({title, data, checkedItems, toggleCheck}: {title: string, data: {id: string, label: string}[], checkedItems: CheckedItems, toggleCheck: (id: string) => void}) {
+export default function CategoryList({title, data, isLoading, checkedItems, toggleCheck, visible = true}: {title: string, data: {id: string, label: string}[], isLoading: boolean, checkedItems: CheckedItems, toggleCheck: ({id, label}: {id: string, label: string}) => void, visible?: boolean}) {
+    if (!visible) return null;
     return (
         <View style={styles.columnContainer}>
             <Text style={styles.filterTitle}>{title}</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                {
+                {isLoading ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 20 }}>
+                        <ActivityIndicator size="small" color="#EA580C" />
+                    </View>
+                ) : (
                     data.map((item, index) => (
                         <View style={styles.checkboxContainer} key={`${item.id}-${index}`}>
                             <Checkbox.Item
                                 label={item.label}
                                 status={checkedItems[item.id] ? 'checked' : 'unchecked'}
-                                onPress={() => toggleCheck(item.id)}
+                                onPress={() => toggleCheck({id: item.id, label: item.label})}
                                 labelStyle={{ fontSize: 14 }}   
                                 mode="android"
                                 position="leading"
@@ -25,7 +30,7 @@ export default function CategoryList({title, data, checkedItems, toggleCheck}: {
                             />
                         </View>
                     ))
-                }
+                )}
             </View>
         </View>
     )

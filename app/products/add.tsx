@@ -7,34 +7,24 @@ import Divider from "@/components/ui/divider";
 import ImagePicker from "@/components/ui/image-picker";
 import Input from "@/components/ui/input";
 import CategoryList, { CheckedItems } from "./components/category-list";
-
-const data = [
-    { id: '1', label: 'Shoes' },
-    { id: '2', label: 'T-shirt' },
-    { id: '3', label: 'Socks' },
-    { id: '4', label: 'Hats' },
-    { id: '5', label: 'Shorts' },
-    { id: '6', label: 'Bags' },
-    { id: '7', label: 'Hoodies & Sweatshirts' },
-    { id: '8', label: 'Sweatpants' },
-    { id: '9', label: 'Sunglasses' },
-    { id: '10', label: 'Tops' },
-    { id: '11', label: 'Jeans' },
-    { id: '12', label: 'Accessories' },
-    { id: '13', label: 'Dresses/Skirts' },
-  ];
-
-const genderData = [
-    { id: '1', label: 'Men' },
-    { id: '2', label: 'Women' },
-    { id: '3', label: 'Kids' },
-]
+import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetGenders, useGetSizes } from "@/hooks/useProduct";
 
 export default function AddProduct() {
     const navigation = useNavigation();
+    const [showNoneShoesCategory, setShowNoneShoesCategory] = useState<boolean>(false);
+    const { data: genders, isFetching: isFetchingGenders } = useGetGenders();
+    const { data: categories, isFetching: isFetchingCategories } = useGetCategories();  
+    const { data: brands, isFetching } = useGetBrands();
+    const { data: colours, isFetching: isFetchingColours } = useGetColours();
+    const { data: categoryTypes, isFetching: isFetchingCategoryTypes } = useGetCategoryTypes();
+    const { data: sizes, isFetching: isFetchingSizes } = useGetSizes();
     const [checkedItems, setCheckedItems] = useState<CheckedItems>({});
 
-    const toggleCheck = (id: string) => {
+    const toggleCheck = ({id, label}: {id: string, label: string}) => {
+        if (label.toLowerCase() === 'shoes') {
+            setShowNoneShoesCategory(!showNoneShoesCategory);
+        }
+        
       setCheckedItems((prev) => ({
         ...prev,
         [id]: !prev[id],
@@ -52,13 +42,18 @@ export default function AddProduct() {
                 <Text style={styles.label}>Product Photos</Text>
                 <Divider width="100%" color="#E5E7EB" />
                 <ImagePicker />
-                <Input value={""} onChangeText={() => {}} placeholder="Product Name" />
-                <Input value={""} onChangeText={() => {}} placeholder="Price" keyboardType="numeric" />
-                <Input value={""} onChangeText={() => {}} placeholder="Quantity" keyboardType="numeric" />                
-                <CategoryList title="Item/Products" data={data} checkedItems={checkedItems} toggleCheck={toggleCheck} /> 
-                <CategoryList title="Gender/Menu/Category" data={genderData} checkedItems={checkedItems} toggleCheck={toggleCheck} />
+                <Input onChangeText={() => {}} placeholder="Product Name" />
+                <Input onChangeText={() => {}} placeholder="Price" keyboardType="numeric" />
+                <Input onChangeText={() => {}} placeholder="Quantity" keyboardType="numeric" />                
+                <CategoryList title="Item/Products" isLoading={isFetchingCategories} data={categories?.map((category) => ({ id: category.id, label: category.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} /> 
+                <CategoryList title="Category Types" isLoading={isFetchingCategoryTypes} data={categoryTypes?.map((categoryType) => ({ id: categoryType.id, label: categoryType.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} />
+                <CategoryList title="Gender/Menu/Category" isLoading={isFetchingGenders} data={genders?.map((gender) => ({ id: gender.id, label: gender.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} />
+                <CategoryList title="Brands" isLoading={isFetching} data={brands?.map((brand) => ({ id: brand.id, label: brand.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} visible={showNoneShoesCategory} />
+                <CategoryList title="Colours" isLoading={isFetchingColours} data={colours?.map((colour) => ({ id: colour.id, label: colour.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} visible={showNoneShoesCategory} />
+                <CategoryList title="Sizes" isLoading={isFetchingSizes} data={sizes?.map((size) => ({ id: size.id, label: size.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} />
+
                 <View style={styles.buttonContainer}>
-                    <Button onPress={() => {}} variant="danger" style={{ paddingHorizontal: 20 }}>Cancel</Button>
+                    <Button onPress={() => navigation.goBack()} variant="danger" style={{ paddingHorizontal: 20 }}>Cancel</Button>
                     <Button onPress={() => {}} style={{ paddingHorizontal: 50 }}>Save</Button>
                 </View>
             </View>    

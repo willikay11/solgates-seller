@@ -3,7 +3,7 @@ import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from "react-native-remix-icon";
 
 type InputProps = {
-  value: string;
+  value?: string;
   onChangeText: (text: string) => void;
   placeholder: string;
   type?: 'text' | 'password';
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 8,
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#1F2937',
   },
   iconContainer: {
     paddingHorizontal: 10,
