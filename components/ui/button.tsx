@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, ActivityIndic
 
 // Define the types for the Button props
 type ButtonProps = {
-  variant?: 'primary' | 'secondary' | 'text' | 'icon';
+  variant?: 'primary' | 'secondary' | 'text' | 'icon' | 'outline' | 'danger';
   block?: boolean;
   onPress: () => void;
   disabled?: boolean;
@@ -32,6 +32,14 @@ const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children,
       break;
     case 'icon':
       buttonStyle = styles.iconButton;
+      break;
+    case 'danger':
+      buttonStyle = styles.dangerButton;
+      textStyle = styles.dangerText;
+      break;
+    case 'outline':
+      buttonStyle = styles.outlineButton;
+      textStyle = styles.outlineText;
       break;
     default:
       buttonStyle = styles.primaryButton;
@@ -94,10 +102,26 @@ const styles = StyleSheet.create({
     color: '#fff', // White text for primary button
   },
   secondaryText: {
-    color: '#000', // Black text for secondary button
+    color: '#fff', // Black text for secondary button
   },
   linkText: {
     color: '#EA580C',
+  },
+  outlineButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#EA580C',
+  },
+  outlineText: {
+    color: '#EA580C',
+  },
+  dangerButton: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#EF4444',
+  },
+  dangerText: {
+    color: '#EF4444',
   },
 });
 

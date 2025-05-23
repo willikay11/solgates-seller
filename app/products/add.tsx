@@ -1,11 +1,12 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import Button from '@/components/ui/button';
 import Icon from "react-native-remix-icon";
 import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import Divider from "@/components/ui/divider";
 import ImagePicker from "@/components/ui/image-picker";
 import Input from "@/components/ui/input";
-import { Checkbox } from 'react-native-paper';
+import CategoryList, { CheckedItems } from "./components/category-list";
 
 const data = [
     { id: '1', label: 'Shoes' },
@@ -23,9 +24,11 @@ const data = [
     { id: '13', label: 'Dresses/Skirts' },
   ];
 
-type CheckedItems = {
-  [key: string]: boolean;
-};
+const genderData = [
+    { id: '1', label: 'Men' },
+    { id: '2', label: 'Women' },
+    { id: '3', label: 'Kids' },
+]
 
 export default function AddProduct() {
     const navigation = useNavigation();
@@ -38,13 +41,8 @@ export default function AddProduct() {
       }));
     };
 
-    const renderFilterTitle = ({title}: {title: string}) => {
-        return (
-            <Text style={styles.filterTitle}>{title}</Text>
-        )
-    }
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             <TouchableOpacity style={styles.headerContainer} onPress={() => navigation.goBack()} >
                 <Icon name="arrow-left-line" size={24} color="#1F2937" />
                 <Text style={styles.title}>Add New Product</Text>
@@ -56,33 +54,15 @@ export default function AddProduct() {
                 <ImagePicker />
                 <Input value={""} onChangeText={() => {}} placeholder="Product Name" />
                 <Input value={""} onChangeText={() => {}} placeholder="Price" keyboardType="numeric" />
-                <Input value={""} onChangeText={() => {}} placeholder="Quantity" keyboardType="numeric" />
-            </View>           
-            <FlatList
-                style={{ padding: 20 }}
-                ListHeaderComponent={() => renderFilterTitle({title: 'Item/Product'})}
-                data={data}
-                renderItem={({ item }) => {
-                    return (
-                        <View style={styles.checkboxContainer}>
-                            <Checkbox.Item
-                                label={item.label}
-                                status={checkedItems[item.id] ? 'checked' : 'unchecked'}
-                                onPress={() => toggleCheck(item.id)}
-                                labelStyle={{ fontSize: 14 }}
-                                mode="android"
-                                position="leading"
-                                color="#EA580C"
-                            />
-                        </View>
-                    )
-                }}
-                keyExtractor={(item) => item.id}
-                numColumns={2}
-                columnWrapperStyle={styles.row}
-                contentContainerStyle={styles.columnContainer}
-            />
-        </View>
+                <Input value={""} onChangeText={() => {}} placeholder="Quantity" keyboardType="numeric" />                
+                <CategoryList title="Item/Products" data={data} checkedItems={checkedItems} toggleCheck={toggleCheck} /> 
+                <CategoryList title="Gender/Menu/Category" data={genderData} checkedItems={checkedItems} toggleCheck={toggleCheck} />
+                <View style={styles.buttonContainer}>
+                    <Button onPress={() => {}} variant="danger" style={{ paddingHorizontal: 20 }}>Cancel</Button>
+                    <Button onPress={() => {}} style={{ paddingHorizontal: 50 }}>Save</Button>
+                </View>
+            </View>    
+        </ScrollView>
     )
 }  
 
@@ -90,7 +70,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
-        width: '100%',
     },
     headerContainer: {
         flexDirection: 'row',
@@ -130,28 +109,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#E5E7EB',
     },
-    row: {
-        // backgroundColor: '#F3F4F6',
-        // borderRadius: 8,
-    },
-    columnContainer: {
-        backgroundColor: '#F9FAFB',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#F3F4F6',
-    },
-    checkboxContainer: {
-        width: '50%',    
+    buttonContainer: {
         flexDirection: 'row',
-        alignItems: 'center',
+        justifyContent: 'flex-end',
         gap: 10,
+        marginBottom: 20,
     },
-    filterTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#1F2937',
-        marginTop: 10,
-        marginBottom: 5,
-        marginHorizontal: 20,
-    }
 })
