@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
     },
     modalBody: {
       paddingHorizontal: 20,
-      paddingVertical: 10
+      paddingTop: 10,
+      paddingBottom: 20
     },
   });

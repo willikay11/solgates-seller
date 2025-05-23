@@ -93,11 +93,11 @@ export default function Dashboard() {
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem}>
                         <Icon name="repeat-2-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Repost</Text>
+                        <Text style={styles.modalItemText}>Edit Item</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem}>
                         <Icon name="delete-bin-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Delete Item</Text>
+                        <Text style={styles.modalItemText}>Remove Item</Text>
                     </TouchableOpacity>
                 </View>
             </Modal>
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     },
     withdrawText: {
         fontSize: 12,
-        fontWeight: '700',
+        fontWeight: '400',
         color: '#1F2937'
     },
     withdrawTextBold: {
