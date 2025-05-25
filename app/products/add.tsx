@@ -1,35 +1,59 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import Button from '@/components/ui/button';
 import Icon from "react-native-remix-icon";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import Divider from "@/components/ui/divider";
 import ImagePicker from "@/components/ui/image-picker";
 import Input from "@/components/ui/input";
-import CategoryList, { CheckedItems } from "./components/category-list";
-import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetGenders, useGetSizes } from "@/hooks/useProduct";
+import CategoryList from "./components/category-list";
+import { useAddProduct, useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetGenders, useGetSizes } from "@/hooks/useProduct";
+
 
 export default function AddProduct() {
     const navigation = useNavigation();
-    const [showNoneShoesCategory, setShowNoneShoesCategory] = useState<boolean>(false);
     const { data: genders, isFetching: isFetchingGenders } = useGetGenders();
-    const { data: categories, isFetching: isFetchingCategories } = useGetCategories();  
+    const { data: categories, isFetching: isFetchingCategories } = useGetCategories(); 
+    const [productUrls, setProductUrls] = useState<string[]>([]);
     const { data: brands, isFetching } = useGetBrands();
     const { data: colours, isFetching: isFetchingColours } = useGetColours();
     const { data: categoryTypes, isFetching: isFetchingCategoryTypes } = useGetCategoryTypes();
     const { data: sizes, isFetching: isFetchingSizes } = useGetSizes();
-    const [checkedItems, setCheckedItems] = useState<CheckedItems>({});
+    const { mutate: addProduct, isPending: isAddingProduct, isSuccess: isAddProductSuccess, isError: isAddProductError } = useAddProduct();
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [selectedCategoryType, setSelectedCategoryType] = useState<string>('');
+    const [selectedBrand, setSelectedBrand] = useState<string>('');
+    const [selectedColours, setSelectedColours] = useState<string[]>([]);
+    const [selectedSize, setSelectedSize] = useState<string>('');
+    const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
+    const [showNoneShoesCategory, setShowNoneShoesCategory] = useState<boolean>(false);
+    const [productName, setProductName] = useState<string>('');
+    const [price, setPrice] = useState<string>('');
+    const [quantity, setQuantity] = useState<string>('');
 
-    const toggleCheck = ({id, label}: {id: string, label: string}) => {
-        if (label.toLowerCase() === 'shoes') {
-            setShowNoneShoesCategory(!showNoneShoesCategory);
-        }
-        
-      setCheckedItems((prev) => ({
-        ...prev,
-        [id]: !prev[id],
-      }));
-    };
+    const handleImageUploaded = (url: string) => {
+        setProductUrls([...productUrls, url]);
+    }
+
+    const handleSubmit = () => {
+        addProduct({
+            name: productName,
+            price: parseFloat(price),
+            quantity: parseInt(quantity),
+            colours: selectedColours,
+            genders: selectedGenders,
+            sizeId: selectedSize,
+            categoryId: selectedCategory,
+            categoryTypeId: selectedCategoryType,
+            brandId: selectedBrand,
+            productUrls: productUrls,
+        });
+    }
+
+    // useEffect(() => {
+    //     console.log("isAddProductSuccess =====> ", isAddProductSuccess);
+    //     console.log("isAddProductError =====> ", isAddProductError);
+    // }, [isAddProductSuccess, isAddProductError]);
 
     return (
         <ScrollView style={styles.container}>
@@ -41,20 +65,86 @@ export default function AddProduct() {
             <View style={styles.formContainer}>
                 <Text style={styles.label}>Product Photos</Text>
                 <Divider width="100%" color="#E5E7EB" />
-                <ImagePicker />
-                <Input onChangeText={() => {}} placeholder="Product Name" />
-                <Input onChangeText={() => {}} placeholder="Price" keyboardType="numeric" />
-                <Input onChangeText={() => {}} placeholder="Quantity" keyboardType="numeric" />                
-                <CategoryList title="Item/Products" isLoading={isFetchingCategories} data={categories?.map((category) => ({ id: category.id, label: category.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} /> 
-                <CategoryList title="Category Types" isLoading={isFetchingCategoryTypes} data={categoryTypes?.map((categoryType) => ({ id: categoryType.id, label: categoryType.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} />
-                <CategoryList title="Gender/Menu/Category" isLoading={isFetchingGenders} data={genders?.map((gender) => ({ id: gender.id, label: gender.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} />
-                <CategoryList title="Brands" isLoading={isFetching} data={brands?.map((brand) => ({ id: brand.id, label: brand.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} visible={showNoneShoesCategory} />
-                <CategoryList title="Colours" isLoading={isFetchingColours} data={colours?.map((colour) => ({ id: colour.id, label: colour.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} visible={showNoneShoesCategory} />
-                <CategoryList title="Sizes" isLoading={isFetchingSizes} data={sizes?.map((size) => ({ id: size.id, label: size.name })) ?? []} checkedItems={checkedItems} toggleCheck={toggleCheck} />
+                <ImagePicker onImageUploaded={handleImageUploaded} />
+                <Input onChangeText={setProductName} placeholder="Product Name" />
+                <Input onChangeText={setPrice} placeholder="Price" keyboardType="numeric" />
+                <Input onChangeText={setQuantity} placeholder="Quantity" keyboardType="numeric" />    
+
+                <CategoryList
+                    title="Item/Products"
+                    isLoading={isFetchingCategories}
+                    data={categories?.map((category) => ({ id: category.id, label: category.name })) ?? []}
+                    checkedItems={selectedCategory}
+                    toggleCheck={({id, label}: {id: string, label: string}) => {
+                        if (label.toLowerCase() === 'shoes') {
+                            setShowNoneShoesCategory(!showNoneShoesCategory);
+                        }
+                        setSelectedCategory(id);
+                    }}
+                    multiple={false}
+                /> 
+                <CategoryList 
+                    title="Category Types" 
+                    isLoading={isFetchingCategoryTypes} 
+                    data={categoryTypes?.map((categoryType) => ({ id: categoryType.id, label: categoryType.name })) ?? []} 
+                    checkedItems={selectedCategoryType} 
+                    toggleCheck={({id}: {id: string, label: string}) => {
+                        setSelectedCategoryType(id);
+                    }}
+                    multiple={false}
+                />
+                <CategoryList
+                    title="Gender/Menu/Category"
+                    isLoading={isFetchingGenders}
+                    data={genders?.map((gender) => ({ id: gender.id, label: gender.name })) ?? []}
+                    checkedItems={selectedGenders.reduce((acc, gender) => ({ ...acc, [gender]: true }), {})}
+                    toggleCheck={({id}: {id: string, label: string}) => {   
+                        if (selectedGenders.includes(id)) {
+                            setSelectedGenders(selectedGenders.filter((gender) => gender !== id));
+                        } else {
+                            setSelectedGenders([...selectedGenders, id]);
+                        }
+                    }}
+                />
+                <CategoryList
+                    title="Brands" 
+                    isLoading={isFetching} 
+                    data={brands?.map((brand) => ({ id: brand.id, label: brand.name })) ?? []} 
+                    checkedItems={selectedBrand} 
+                    toggleCheck={({id}: {id: string, label: string}) => {
+                        setSelectedBrand(id);
+                    }}
+                    visible={showNoneShoesCategory} 
+                    multiple={false}
+                />
+                <CategoryList
+                    title="Colours"
+                    isLoading={isFetchingColours}
+                    data={colours?.map((colour) => ({ id: colour.id, label: colour.name })) ?? []}
+                    checkedItems={selectedColours.reduce((acc, colour) => ({ ...acc, [colour]: true }), {})}
+                    toggleCheck={({id}: {id: string, label: string}) => {
+                        if (selectedColours.includes(id)) {
+                            setSelectedColours(selectedColours.filter((colour) => colour !== id));
+                        } else {
+                            setSelectedColours([...selectedColours, id]);
+                        }
+                    }} 
+                    visible={showNoneShoesCategory}
+                />
+                <CategoryList
+                    title="Sizes"
+                    isLoading={isFetchingSizes}
+                    data={sizes?.map((size) => ({ id: size.id, label: size.name })) ?? []}
+                    checkedItems={selectedSize}
+                    toggleCheck={({id}: {id: string, label: string}) => {
+                        setSelectedSize(id);
+                    }}  
+                    multiple={false}
+                />
 
                 <View style={styles.buttonContainer}>
                     <Button onPress={() => navigation.goBack()} variant="danger" style={{ paddingHorizontal: 20 }}>Cancel</Button>
-                    <Button onPress={() => {}} style={{ paddingHorizontal: 50 }}>Save</Button>
+                    <Button onPress={handleSubmit} style={{ paddingHorizontal: 50 }} disabled={isAddingProduct} loading={isAddingProduct} >Save</Button>
                 </View>
             </View>    
         </ScrollView>

@@ -1,5 +1,6 @@
 import { productService } from "@/services/product";
-import { useQuery } from "@tanstack/react-query";
+import { AddProduct, Product } from "@/types/product";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useGetCategoryTypes = () => {
     return useQuery({
@@ -54,5 +55,21 @@ export const useProducts = (storeId?: string, page: number = 1) => {
         queryKey: ['products', storeId, page],
         queryFn: () => productService.getProducts(storeId, page),
         enabled: !!storeId,
+    });
+};
+
+export const useAddProduct = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (product: AddProduct) => productService.addProduct(product),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+        },
+    });
+}; 
+
+export const useUploadImage = () => {
+    return useMutation({
+        mutationFn: (image: any) => productService.uploadImage(image),
     });
 };

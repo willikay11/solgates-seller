@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Text, Image, Button } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Icon from "react-native-remix-icon";
-const ImagePickerExample = () => {
+import { useUploadImage } from '@/hooks/useProduct';
+
+const ImagePickerExample = ({ onImageUploaded }: { onImageUploaded: (url: string) => void }) => {
   const [selectedImages, setSelectedImages] = useState(Array(3).fill(null));
+  const { mutate: uploadImage, data: uploadImageData, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage();
 
   const findLastNonNullIndex = () => {
     for (let i = selectedImages.length - 1; i >= 0; i--) {
@@ -28,13 +31,28 @@ const ImagePickerExample = () => {
         aspect: [1, 1],
         quality: 1,
       });
+
     
       if (!result.canceled) {
+        uploadImage({
+          uri: result.assets?.[0]?.uri,
+          type: 'image/jpeg',
+          name: result.assets?.[0]?.fileName,
+        });
         const newImages = [...selectedImages];
         newImages[index] = result.assets?.[0]?.uri;
         setSelectedImages(newImages);
       }
   };
+
+  useEffect(() => {
+    if (isUploadImageSuccess) {
+      onImageUploaded(uploadImageData.secure_url);
+    }
+    if (isUploadImageError) {
+      console.log("isUploadImageError =====> ", isUploadImageError);
+    }
+  }, [isUploadImageSuccess, isUploadImageError, uploadImageData]);
 
   return (
     <View style={styles.container}>
