@@ -1,6 +1,6 @@
 import { productService } from "@/services/product";
 import { AddProduct } from "@/types/product";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 
 export const useGetCategoryTypes = () => {
     return useQuery({
@@ -59,10 +59,13 @@ export const useGetConditions = () => {
 };  
 
 export const useProducts = (storeId?: string, page: number = 1) => {
-    return useQuery({
+    return useInfiniteQuery({
         queryKey: ['products', storeId, page],
         queryFn: () => productService.getProducts(storeId, page),
-        enabled: !!storeId,
+        getNextPageParam: (products, pages) => {
+            return products.meta.currentPage < products.meta.lastPage ? products.meta.currentPage + 1 : undefined;
+        },
+        initialPageParam: 1,
     });
 };
 
@@ -83,7 +86,11 @@ export const useUploadImage = () => {
 };
 
 export const useDeleteProduct = () => {
+    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (productId: string) => productService.deleteProduct(productId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+        },
     });
 };

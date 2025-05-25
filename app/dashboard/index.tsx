@@ -21,9 +21,7 @@ export default function Dashboard() {
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
     const [isWalletAmountVisible, setIsWalletAmountVisible] = useState(false);
-    const [totalProducts, setTotalProducts] = useState(0);
     const { data: wallet } = useWallet();
-    const [productList, setProductList] = useState<Product[]>([]);
     const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
     const [amount, setAmount] = useState('');
@@ -71,8 +69,6 @@ export default function Dashboard() {
     useEffect(() => {
         setMenuVisible(false);
         if (isDeleteSuccess) {
-            setProductList(productList.filter(product => product.id !== selectedProduct?.id));
-            setTotalProducts(totalProducts - 1);
             Toast.show({
                 type: 'success',
                 text1: 'Product deleted successfully',
@@ -96,15 +92,9 @@ export default function Dashboard() {
         return products && typeof products.meta === 'object' && 'total' in products.meta;
     };
 
-    useEffect(() => {
-        if (isProductArray(products?.products)) {
-            setProductList([...productList, ...products.products]);
-        }
-        if (hasMeta(products)) {
-            setTotalProducts(products.meta.total);
-        }
-    }, [products]);
     
+    const productsList = products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? [];
+    const totalProducts = products?.pages.flatMap(page => page.meta.total) ?? 0;
     return (
         <>
             <Modal modalVisible={menuVisible} setModalVisible={setMenuVisible} title="Menu" >
@@ -196,10 +186,10 @@ export default function Dashboard() {
             </View>
             <Divider width="100%" height={1} color="#F3F4F6" />
             <View style={styles.productContainer}>
-                <Text style={styles.productHeaderText}>Your Stock ({totalProducts} Products)</Text>
+                <Text style={styles.productHeaderText}>Your Stock ({productsList.length} Products)</Text>
                 <View style={styles.productListContainer}>
                     <FlatList
-                        data={productList}
+                        data={productsList}
                         keyExtractor={(_, index) => index.toString()}
                         onEndReached={() => {
                             if (hasMeta(products) && products.meta.currentPage < products.meta.lastPage) {
