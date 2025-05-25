@@ -1,6 +1,7 @@
 import { productService } from "@/services/product";
 import { AddProduct, Product } from "@/types/product";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Constants from 'expo-constants';
 
 export const useGetCategoryTypes = () => {
     return useQuery({
@@ -71,5 +72,11 @@ export const useAddProduct = () => {
 export const useUploadImage = () => {
     return useMutation({
         mutationFn: (image: any) => productService.uploadImage(image),
+    });
+};
+
+export const useDeleteProduct = () => {
+    return useMutation({
+        mutationFn: (productId: string) => productService.deleteProduct(productId),
     });
 };

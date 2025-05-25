@@ -11,21 +11,24 @@ import { router } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
 import numeral from 'numeral';
-import { useProducts } from '@/hooks/useProduct';
+import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
 import { Meta } from '@/types/meta';
 import Toast from 'react-native-toast-message';
 
 export default function Dashboard() {
     const [menuVisible, setMenuVisible] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
     const [isWalletAmountVisible, setIsWalletAmountVisible] = useState(false);
+    const [totalProducts, setTotalProducts] = useState(0);
     const { data: wallet } = useWallet();
     const [productList, setProductList] = useState<Product[]>([]);
     const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
     const [amount, setAmount] = useState('');
     const { data: products, isFetching } = useProducts(user?.storeId, page);
+    const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
 
     const handleWithdraw = () => {
@@ -65,6 +68,26 @@ export default function Dashboard() {
         fetchUser();
     }, []);
 
+    useEffect(() => {
+        setMenuVisible(false);
+        if (isDeleteSuccess) {
+            setProductList(productList.filter(product => product.id !== selectedProduct?.id));
+            setTotalProducts(totalProducts - 1);
+            Toast.show({
+                type: 'success',
+                text1: 'Product deleted successfully',
+                text2: `The product has been removed from your stock`,
+            });
+        } else if (isDeleteError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Product deletion failed',
+                text2: 'Please try again',
+            });
+        }
+        setSelectedProduct(null);
+    }, [isDeleteSuccess, isDeleteError]);
+
     const isProductArray = (products: any): products is Product[] => {
         return Array.isArray(products);
     };
@@ -76,6 +99,9 @@ export default function Dashboard() {
     useEffect(() => {
         if (isProductArray(products?.products)) {
             setProductList([...productList, ...products.products]);
+        }
+        if (hasMeta(products)) {
+            setTotalProducts(products.meta.total);
         }
     }, [products]);
     
@@ -95,9 +121,14 @@ export default function Dashboard() {
                         <Icon name="repeat-2-line" size={14} color="#1F2937" />
                         <Text style={styles.modalItemText}>Edit Item</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.modalItem}>
+                    <TouchableOpacity style={styles.modalItem} onPress={() => {
+                        if (selectedProduct) {
+                            deleteProduct(selectedProduct.id)
+                        }
+                    }}>
                         <Icon name="delete-bin-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Remove Item</Text>
+                        <Text style={styles.modalItemText}>{isDeleting ? 'Removing...' : 'Remove Item'}</Text>
+                        {isDeleting && <ActivityIndicator size="small" color="#1F2937" />}
                     </TouchableOpacity>
                 </View>
             </Modal>
@@ -165,15 +196,13 @@ export default function Dashboard() {
             </View>
             <Divider width="100%" height={1} color="#F3F4F6" />
             <View style={styles.productContainer}>
-                <Text style={styles.productHeaderText}>Your Stock ({hasMeta(products) ? products.meta.total : 0} Products)</Text>
+                <Text style={styles.productHeaderText}>Your Stock ({totalProducts} Products)</Text>
                 <View style={styles.productListContainer}>
                     <FlatList
                         data={productList}
                         keyExtractor={(_, index) => index.toString()}
                         onEndReached={() => {
                             if (hasMeta(products) && products.meta.currentPage < products.meta.lastPage) {
-                                console.log('current page', products.meta.currentPage);
-                                console.log('last page', products.meta.lastPage);
                                 setPage(products.meta.currentPage + 1);
                             }
                         }}
@@ -198,7 +227,10 @@ export default function Dashboard() {
                                     <Text style={styles.productItemText}>KES {numeral(item.price).format('0,0.00')}</Text>
                                 </View>
                                 <View style={styles.productItemActionContainer}>
-                                    <TouchableOpacity onPress={() => setMenuVisible(true)}>
+                                    <TouchableOpacity onPress={() => {
+                                            setMenuVisible(true)
+                                            setSelectedProduct(item)
+                                        }}>
                                         <Icon name="more-2-fill" size={20} color="#EA580C" />
                                     </TouchableOpacity>
                                 </View>

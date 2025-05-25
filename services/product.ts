@@ -9,7 +9,6 @@ import { Category } from "@/types/category";
 import { CategoryType } from "@/types/categoryType";
 import { Gender } from "@/types/gender";
 import * as SecureStore from 'expo-secure-store';
-import axios from "axios";
 
 export const productService = {
     getProducts: async (storeId?: string, page: number = 1): Promise<Pagination<Product>> => {
@@ -121,6 +120,11 @@ export const productService = {
             console.log("error =====> ", error);
             throw error;
         }
+    },
+
+    deleteProduct: async (productId: string) => {
+        const response = await api.delete(`/product/${productId}/delete`);
+        return parseSnakeToCamel(response.data);
     }
 };
     
