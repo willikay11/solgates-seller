@@ -69,19 +69,28 @@ export const useProducts = (storeId?: string, page: number = 1) => {
     });
 };
 
-export const useAddProduct = () => {
+export const useGetProductById = (productId: string) => {
+    return useQuery({
+        queryKey: ['product', productId],
+        queryFn: () => productService.getProductById(productId),
+        enabled: !!productId,
+    });
+};
+
+export const useAddOrUpdateProduct = (id?:string) => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (product: AddProduct) => productService.addProduct(product),
+        mutationFn: (product: AddProduct) => productService.addOrUpdateProduct(product, id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['product', id] });
         },
     });
 }; 
 
-export const useUploadImage = () => {
+export const useUploadImage = (id?: string) => {
     return useMutation({
-        mutationFn: (image: any) => productService.uploadImage(image),
+        mutationFn: (image: any) => productService.uploadImage(image, id),
     });
 };
 

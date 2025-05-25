@@ -4,9 +4,19 @@ import * as ImagePicker from 'expo-image-picker';
 import Icon from "react-native-remix-icon";
 import { useUploadImage } from '@/hooks/useProduct';
 
-const ImagePickerExample = ({ onImageUploaded }: { onImageUploaded: (url: string) => void }) => {
+type ImagePickerProps = { 
+  onImageUploaded: (url: string) => void;
+  selectedImages?: string[];
+  productId?: string;
+}
+const ImagePickerExample = ({ onImageUploaded, selectedImages: selectedImagesProps, productId }: ImagePickerProps) => {
   const [selectedImages, setSelectedImages] = useState(Array(3).fill(null));
-  const { mutate: uploadImage, data: uploadImageData, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage();
+  useEffect(() => {
+    if (selectedImagesProps) {
+      setSelectedImages(selectedImagesProps);
+    }
+  }, [selectedImagesProps]);
+  const { mutate: uploadImage, data: uploadImageData, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage(productId);
 
   const findLastNonNullIndex = () => {
     for (let i = selectedImages.length - 1; i >= 0; i--) {
@@ -26,23 +36,21 @@ const ImagePickerExample = ({ onImageUploaded }: { onImageUploaded: (url: string
     }
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-      });
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
 
     
-      if (!result.canceled) {
-        uploadImage({
-          uri: result.assets?.[0]?.uri,
-          type: 'image/jpeg',
-          name: result.assets?.[0]?.fileName,
-        });
-        const newImages = [...selectedImages];
-        newImages[index] = result.assets?.[0]?.uri;
-        setSelectedImages(newImages);
-      }
+    if (!result.canceled) {
+      uploadImage({
+        uri: result.assets?.[0]?.uri,
+        type: 'image/jpeg',
+        name: result.assets?.[0]?.fileName,
+      });
+      setSelectedImages([...selectedImages, result.assets?.[0]?.uri]);
+    }
   };
 
   useEffect(() => {
@@ -69,7 +77,7 @@ const ImagePickerExample = ({ onImageUploaded }: { onImageUploaded: (url: string
       ))}
       <TouchableOpacity 
         style={styles.imageButtonContainer} 
-        onPress={() =>handleSelectImage()}>
+        onPress={() =>handleSelectImage(findLastNonNullIndex() + 1)}>
         <Icon name="image-line" size={21} color="#2563EB" />
       </TouchableOpacity>
     </View>

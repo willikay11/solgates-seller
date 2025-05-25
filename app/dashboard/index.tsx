@@ -107,7 +107,12 @@ export default function Dashboard() {
                         <Icon name="file-copy-line" size={14} color="#1F2937" />
                         <Text style={styles.modalItemText}>Copy Link</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.modalItem}>
+                    <TouchableOpacity style={styles.modalItem} onPress={() => {
+                        if (selectedProduct) {
+                            setMenuVisible(false);
+                            router.push(`/products/edit/${selectedProduct.id}`);
+                        }
+                    }}>
                         <Icon name="repeat-2-line" size={14} color="#1F2937" />
                         <Text style={styles.modalItemText}>Edit Item</Text>
                     </TouchableOpacity>

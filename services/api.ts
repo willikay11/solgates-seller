@@ -11,7 +11,7 @@ api.interceptors.request.use(async (config) => {
   const user = await SecureStore.getItemAsync('user');
   const accessToken = JSON.parse(user ?? '{}').accessToken;
 
-  if (config.url?.includes('/delete') || config.url?.includes('/product/create')) {
+  if (config.url?.includes('/delete') || config.url?.includes('/product/create') || config.url?.includes('/admin-view') || config.url?.includes('/update') || config.url?.includes('/image/create')) {
     config.headers.Authorization = `Bearer ${TEST_ADMIN_TOKEN}`;
   } else if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;

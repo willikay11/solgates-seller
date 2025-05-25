@@ -12,11 +12,6 @@ import { Condition } from "@/types/condition";
 import * as SecureStore from 'expo-secure-store';
 
 export const productService = {
-    getProducts: async (storeId?: string, page: number = 1): Promise<Pagination<Product>> => {
-        const response = await api.get(`/product/list?filter[store_id]=${storeId}&page=${page}`);
-        return parseSnakeToCamel(response.data);
-    },
-
     getGenders: async (): Promise<Gender[]> => {
         const response = await api.get('/gender/list?filter[is_active]=1');
         return parseSnakeToCamel(response.data?.genders);
@@ -52,7 +47,17 @@ export const productService = {
         return parseSnakeToCamel(response.data?.product_conditions);
     },
 
-    addProduct: async (product: AddProduct) => {
+    getProducts: async (storeId?: string, page: number = 1): Promise<Pagination<Product>> => {
+        const response = await api.get(`/product/list?filter[store_id]=${storeId}&page=${page}`);
+        return parseSnakeToCamel(response.data);
+    },
+
+    getProductById: async (productId: string): Promise<Product> => {
+        const response = await api.get(`/product/${productId}/admin-view`);
+        return parseSnakeToCamel(response.data?.product);
+    },
+
+    addOrUpdateProduct: async (product: AddProduct, id?: string) => {
         try {
             const userData = await SecureStore.getItemAsync('user');
 
@@ -93,22 +98,37 @@ export const productService = {
                   : ''
               );
 
-            const response = await api.post('/product/create', formData, {
+            const url = id ? `/product/${id}/update` : '/product/create';
+
+            const method = id ? 'patch' : 'post';
+
+            const response = await api[method](url, id ? {
+                name: product.name,
+                price: product.price,
+                quantity: product.quantity,
+                category_id: product.categoryId,
+                category_type_id: product.categoryTypeId,
+                brand_id: product.brandId,
+                product_condition_id: product.productConditionId,
+                size_id: product.sizeId,
+                colours: JSON.stringify(product.colours.map((colour: string) => ({ colour_id: colour }))),
+                genders: JSON.stringify(product.genders.map((gender: string) => ({ gender_id: gender }))),
+            } : formData, {
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': id ? 'application/json' : 'multipart/form-data',
                 }
             });
 
             return parseSnakeToCamel(response.data);
         } catch (error: any) {
-            console.log("error =====> ", error.response.data.errors);
+            console.log("error =====> ", error.response);
             throw error;
         }
         
     },
 
-    uploadImage: async (image: any) => {
+    uploadImage: async (image: any, id?: string) => {
         const formData = new FormData();
         formData.append('file', image);
         formData.append('upload_preset', 't9btjy9q');
@@ -118,16 +138,29 @@ export const productService = {
                 body: formData,
             });
             const data = await response.json();
+            if (id) {
+                productService.addProductImage(id, data.secure_url);
+            }
             return data;
         } catch (error) {
             console.log("error =====> ", error);
             throw error;
         }
     },
-
     deleteProduct: async (productId: string) => {
         const response = await api.delete(`/product/${productId}/delete`);
         return parseSnakeToCamel(response.data);
+    },
+    addProductImage: async (productId: string, imageUrl: string) => {
+        try {
+            const response = await api.post(`/product/${productId}/image/create`, {
+                product_image_urls: JSON.stringify([{ url: imageUrl }])
+            });
+            return parseSnakeToCamel(response.data);
+        } catch (error: any) {
+            console.log("error =====> ", error.response);
+            throw error;
+        }    
     }
 };
     
