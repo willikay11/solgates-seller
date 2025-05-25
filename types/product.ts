@@ -10,14 +10,15 @@ import { Colour } from "./colour";
 
 export interface AddProduct {
     name: string;
-    price: number;
-    quantity: number;
+    price: string;
+    quantity: string;
     categoryId: string;
     categoryTypeId: string;
+    productConditionId: string;
     brandId: string;
     colours: string[];
     genders: string[];
-    productUrls: string[];
+    productUrls: { url: string }[];
     sizeId: string;
 }
 

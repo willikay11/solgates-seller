@@ -8,6 +8,7 @@ import { Size } from "@/types/size";
 import { Category } from "@/types/category";
 import { CategoryType } from "@/types/categoryType";
 import { Gender } from "@/types/gender";
+import { Condition } from "@/types/condition";
 import * as SecureStore from 'expo-secure-store';
 
 export const productService = {
@@ -46,6 +47,11 @@ export const productService = {
         return parseSnakeToCamel(response.data?.sizes);
     },
 
+    getProductConditions: async (): Promise<Condition[]> => {
+        const response = await api.get('/product-condition/list?filter[is_active]=1');
+        return parseSnakeToCamel(response.data?.product_conditions);
+    },
+
     addProduct: async (product: AddProduct) => {
         try {
             const userData = await SecureStore.getItemAsync('user');
@@ -53,10 +59,11 @@ export const productService = {
             const formData = new FormData();
             formData.append('name', product.name);
             formData.append('price', product.price.toString());
-            formData.append('quantity', product.quantity.toString());
+            formData.append('quantity', String(parseInt(product.quantity, 10)));
             formData.append('category_id', product.categoryId);
             formData.append('category_type_id', product.categoryTypeId);
             formData.append('brand_id', product.brandId);
+            formData.append('product_condition_id', product.productConditionId);
             formData.append('store_id', JSON.parse(userData ?? '{}').storeId);
             formData.append('size_id', product.sizeId);
 
@@ -85,21 +92,17 @@ export const productService = {
                     )
                   : ''
               );
-            // const response = await api.post('/product/create', formData, {
-            //     headers: {
-            //         'Content-Type': 'multipart/form-data',
-            //     }
-            // });
 
-            console.log("formData =====> ", formData);
-
-            const response = await api.post('/product/create', {
-                name: product.name,
+            const response = await api.post('/product/create', formData, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'multipart/form-data',
+                }
             });
 
             return parseSnakeToCamel(response.data);
-        } catch (error) {
-            console.log("error =====> ", error);
+        } catch (error: any) {
+            console.log("error =====> ", error.response.data.errors);
             throw error;
         }
         

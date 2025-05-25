@@ -1,7 +1,6 @@
 import { productService } from "@/services/product";
-import { AddProduct, Product } from "@/types/product";
+import { AddProduct } from "@/types/product";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Constants from 'expo-constants';
 
 export const useGetCategoryTypes = () => {
     return useQuery({
@@ -50,6 +49,14 @@ export const useGetCategories = () => {
         enabled: true,
     });
 };
+
+export const useGetConditions = () => {
+    return useQuery({
+        queryKey: ['conditions'],
+        queryFn: () => productService.getProductConditions(),
+        enabled: true,
+    });
+};  
 
 export const useProducts = (storeId?: string, page: number = 1) => {
     return useQuery({

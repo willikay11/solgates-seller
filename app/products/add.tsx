@@ -7,22 +7,24 @@ import Divider from "@/components/ui/divider";
 import ImagePicker from "@/components/ui/image-picker";
 import Input from "@/components/ui/input";
 import CategoryList from "./components/category-list";
-import { useAddProduct, useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetGenders, useGetSizes } from "@/hooks/useProduct";
-
+import { useAddProduct, useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes } from "@/hooks/useProduct";
+import Toast from "react-native-toast-message";
 
 export default function AddProduct() {
     const navigation = useNavigation();
     const { data: genders, isFetching: isFetchingGenders } = useGetGenders();
     const { data: categories, isFetching: isFetchingCategories } = useGetCategories(); 
-    const [productUrls, setProductUrls] = useState<string[]>([]);
+    const [productUrls, setProductUrls] = useState<{ url: string }[]>([]);
     const { data: brands, isFetching } = useGetBrands();
     const { data: colours, isFetching: isFetchingColours } = useGetColours();
     const { data: categoryTypes, isFetching: isFetchingCategoryTypes } = useGetCategoryTypes();
     const { data: sizes, isFetching: isFetchingSizes } = useGetSizes();
     const { mutate: addProduct, isPending: isAddingProduct, isSuccess: isAddProductSuccess, isError: isAddProductError } = useAddProduct();
+    const { data: conditions, isFetching: isFetchingConditions } = useGetConditions();
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [selectedCategoryType, setSelectedCategoryType] = useState<string>('');
     const [selectedBrand, setSelectedBrand] = useState<string>('');
+    const [selectedCondition, setSelectedCondition] = useState<string>('');
     const [selectedColours, setSelectedColours] = useState<string[]>([]);
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
@@ -32,28 +34,40 @@ export default function AddProduct() {
     const [quantity, setQuantity] = useState<string>('');
 
     const handleImageUploaded = (url: string) => {
-        setProductUrls([...productUrls, url]);
+        setProductUrls([...productUrls, { url: url }]);
     }
 
     const handleSubmit = () => {
         addProduct({
             name: productName,
-            price: parseFloat(price),
-            quantity: parseInt(quantity),
+            price: price,
+            quantity: quantity,
             colours: selectedColours,
             genders: selectedGenders,
             sizeId: selectedSize,
             categoryId: selectedCategory,
+            productConditionId: selectedCondition,
             categoryTypeId: selectedCategoryType,
             brandId: selectedBrand,
             productUrls: productUrls,
         });
     }
 
-    // useEffect(() => {
-    //     console.log("isAddProductSuccess =====> ", isAddProductSuccess);
-    //     console.log("isAddProductError =====> ", isAddProductError);
-    // }, [isAddProductSuccess, isAddProductError]);
+    useEffect(() => {
+        if (isAddProductSuccess) {
+            Toast.show({
+                type: 'success',
+                text1: 'Product added successfully',
+            });
+            navigation.goBack();
+        }
+        if (isAddProductError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Product addition failed',
+            });
+        }
+    }, [isAddProductSuccess, isAddProductError]);
 
     return (
         <ScrollView style={styles.container}>
@@ -105,6 +119,16 @@ export default function AddProduct() {
                             setSelectedGenders([...selectedGenders, id]);
                         }
                     }}
+                />
+                <CategoryList
+                    title="Conditions"
+                    isLoading={isFetchingConditions}
+                    data={conditions?.map((condition) => ({ id: condition.id, label: condition.name })) ?? []}
+                    checkedItems={selectedCondition}
+                    toggleCheck={({id}: {id: string, label: string}) => {
+                        setSelectedCondition(id);
+                    }}
+                    multiple={false}
                 />
                 <CategoryList
                     title="Brands" 
