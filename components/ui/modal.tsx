@@ -1,6 +1,7 @@
 import { View, Text, Modal as RNModal, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from "react-native-remix-icon";
 import Divider from '@/components/ui/divider';
+
 export const Modal = ({modalVisible, title, children, setModalVisible}: {modalVisible: boolean, title: string, children: React.ReactNode, setModalVisible: (visible: boolean) => void}) => {
     return (
         <RNModal

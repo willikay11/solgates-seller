@@ -15,12 +15,14 @@ import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
 import { Meta } from '@/types/meta';
 import Toast from 'react-native-toast-message';
+import Share from '@/components/ui/share';
 
 export default function Dashboard() {
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
     const [isWalletAmountVisible, setIsWalletAmountVisible] = useState(false);
+    const [shareModalVisible, setShareModalVisible] = useState(false);
     const { data: wallet } = useWallet();
     const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
@@ -99,7 +101,10 @@ export default function Dashboard() {
         <>
             <Modal modalVisible={menuVisible} setModalVisible={setMenuVisible} title="Menu" >
                 <View>
-                    <TouchableOpacity style={styles.modalItem}>
+                    <TouchableOpacity style={styles.modalItem} onPress={() => {
+                        setMenuVisible(false);
+                        setShareModalVisible(true);
+                    }}>
                         <Icon name="share-line" size={14} color="#1F2937" />
                         <Text style={styles.modalItemText}>Share Product</Text>
                     </TouchableOpacity>
@@ -148,6 +153,9 @@ export default function Dashboard() {
                     </Button>
                 </View>
             </Modal>
+
+            <Share modalVisible={shareModalVisible} setModalVisible={setShareModalVisible} />
+            
             <View style={styles.container}>
             <View style={styles.headerContainer}>
                 <Text style={styles.headerText}>{user?.storeName}</Text>
