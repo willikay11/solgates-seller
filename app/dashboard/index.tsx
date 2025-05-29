@@ -1,7 +1,7 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator, Platform } from 'react-native';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
 import { useEffect, useState } from 'react';
@@ -15,14 +15,14 @@ import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
 import { Meta } from '@/types/meta';
 import Toast from 'react-native-toast-message';
-import Share from '@/components/ui/share';
+import * as FileSystem from 'expo-file-system';
+import Share from 'react-native-share'
 
 export default function Dashboard() {
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
     const [isWalletAmountVisible, setIsWalletAmountVisible] = useState(false);
-    const [shareModalVisible, setShareModalVisible] = useState(false);
     const { data: wallet } = useWallet();
     const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
@@ -34,6 +34,50 @@ export default function Dashboard() {
     const handleWithdraw = () => {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
     }
+
+    const shareProduct = async ({
+        message,
+        imageUrl,
+        title,
+      }: {
+        message: string;
+        imageUrl: string;
+        title: string;
+      }) => {
+        try {
+          // Step 1: Download image to local cache
+          const localUri = FileSystem.cacheDirectory + 'shared-image.jpg';
+          console.log('localUri',localUri);
+          const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
+          console.log('downloadResultsss',uri);
+
+          if (Platform.OS === 'android') {
+            const shareOptions = {
+                title: title,
+                message: message,
+                url: 'file://' + uri.replace('file://', ''), // ensure proper format
+                type: 'image/jpeg',
+                failOnCancel: false,
+              };
+
+            // Step 2a: Android — Use native share + file URI + message
+            await Share.open(shareOptions);
+          } else {
+            // Step 2b: iOS — Share only the image (text won't be shown)
+            // await Sharing.shareAsync(downloadResult.uri, {
+            //   dialogTitle: title,
+            //   UTI: 'public.jpeg',
+            //   mimeType: 'image/jpeg',
+            // });
+          }
+        } catch (error: any) {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: error?.message ?? 'An error occurred',
+          });
+        }
+      };
 
     useEffect(() => {
         if (isWithdrawSuccess) {
@@ -103,7 +147,10 @@ export default function Dashboard() {
                 <View>
                     <TouchableOpacity style={styles.modalItem} onPress={() => {
                         setMenuVisible(false);
-                        setShareModalVisible(true);
+                        shareProduct({ 
+                            title: `${selectedProduct?.name} - ${selectedProduct?.size.name} on solgates`,
+                            message: `Buy ${selectedProduct?.name} | ${selectedProduct?.genders.map(gender => gender.name).join(', ')} | size: ${selectedProduct?.size.name} on solgates`,
+                            imageUrl: selectedProduct?.productImageUrls[0].url ?? '' });
                     }}>
                         <Icon name="share-line" size={14} color="#1F2937" />
                         <Text style={styles.modalItemText}>Share Product</Text>
@@ -153,8 +200,6 @@ export default function Dashboard() {
                     </Button>
                 </View>
             </Modal>
-
-            <Share modalVisible={shareModalVisible} setModalVisible={setShareModalVisible} />
             
             <View style={styles.container}>
             <View style={styles.headerContainer}>
