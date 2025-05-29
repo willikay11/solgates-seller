@@ -21,7 +21,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     const { data: colours, isFetching: isFetchingColours } = useGetColours();
     const { data: categoryTypes, isFetching: isFetchingCategoryTypes } = useGetCategoryTypes();
     const { data: sizes, isFetching: isFetchingSizes } = useGetSizes();
-    const [productUrls, setProductUrls] = useState<{ url: string }[]>([]);
+    const [productUrls, setProductUrls] = useState<{ url: string }[]>(Array(3).fill(null));
     const { mutate: addProduct, isPending: isAddingProduct, isSuccess: isAddProductSuccess, isError: isAddProductError } = useAddOrUpdateProduct(product?.id);
     const { data: conditions, isFetching: isFetchingConditions } = useGetConditions();
     const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -35,12 +35,29 @@ export default function ProductForm({ product }: ProductFormProps) {
     const [productName, setProductName] = useState<string>('');
     const [price, setPrice] = useState<string>('');
     const [quantity, setQuantity] = useState<string>('');
+    const [nameError, setNameError] = useState<string>('');
+    const [priceError, setPriceError] = useState<string>('');
+    const [quantityError, setQuantityError] = useState<string>('');
 
     const handleImageUploaded = (url: string) => {
         setProductUrls([...productUrls, { url: url }]);
     }
 
     const handleSubmit = () => {
+        if (!productName) {
+            setNameError('Product name is required');
+        }
+        if (!price) {
+            setPriceError('Price is required');
+        }
+        if (!quantity) {
+            setQuantityError('Quantity is required');   
+        }
+
+        if (nameError || priceError || quantityError) {
+            return;
+        }
+
         addProduct({
             name: productName,
             price: price,
@@ -89,14 +106,15 @@ export default function ProductForm({ product }: ProductFormProps) {
             setProductUrls(product.productImageUrls.map((image) => ({ url: image.url })));
         }
     }, [product]);
+
     return (
         <View style={styles.formContainer}>
             <Text style={styles.label}>Product Photos</Text>
             <Divider width="100%" color="#E5E7EB" />
             <ImagePicker onImageUploaded={handleImageUploaded} selectedImages={productUrls.map((image) => image.url)} productId={product?.id} />
-            <Input value={productName} onChangeText={setProductName} placeholder="Product Name" />
-            <Input value={price} onChangeText={setPrice} placeholder="Price" keyboardType="numeric" />
-            <Input value={quantity} onChangeText={setQuantity} placeholder="Quantity" keyboardType="numeric" />    
+            <Input value={productName} onChangeText={setProductName} placeholder="Product Name" error={nameError} />
+            <Input value={price} onChangeText={setPrice} placeholder="Price" keyboardType="numeric" error={priceError} />
+            <Input value={quantity} onChangeText={setQuantity} placeholder="Quantity" keyboardType="numeric" error={quantityError} />    
 
             <CategoryList
                 title="Item/Products"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import Icon from "react-native-remix-icon";
 
 type InputProps = {
@@ -9,6 +9,7 @@ type InputProps = {
   type?: 'text' | 'password';
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   prefixComponent?: React.ReactNode;
+  error?: string;
 };
 
 const Input: React.FC<InputProps> = ({
@@ -18,6 +19,7 @@ const Input: React.FC<InputProps> = ({
   type = 'text',
   prefixComponent,
   keyboardType = 'default',
+  error,
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -26,25 +28,28 @@ const Input: React.FC<InputProps> = ({
   };
 
   return (
-    <View style={styles.inputContainer}>
-      {prefixComponent && <View style={styles.prefix}>{prefixComponent}</View>}
+    <> 
+      <View style={[styles.inputContainer, error && { borderColor: 'red' }]}>
+        {prefixComponent && <View style={styles.prefix}>{prefixComponent}</View>}
 
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        secureTextEntry={type === 'password' && !isPasswordVisible}
-        style={styles.input}
-        keyboardType={keyboardType}     
-      />
+        <TextInput
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          secureTextEntry={type === 'password' && !isPasswordVisible}
+          style={styles.input}
+          keyboardType={keyboardType}     
+        />
 
-      {/* Show toggle icon only for password input */}
-      {type === 'password' && (
-        <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
-          {isPasswordVisible ? <Icon name="eye-line" size={18} color="gray" /> : <Icon name="eye-close-line" size={18} color="gray" />}
-        </TouchableOpacity>
-      )}
-    </View>
+        {/* Show toggle icon only for password input */}
+        {type === 'password' && (
+          <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
+            {isPasswordVisible ? <Icon name="eye-line" size={18} color="gray" /> : <Icon name="eye-close-line" size={18} color="gray" />}
+          </TouchableOpacity>
+        )}
+      </View>
+      {error && <Text style={styles.error}>{error}</Text>}
+    </>
   );
 };
 
@@ -77,6 +82,11 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     paddingHorizontal: 10,
+  },
+  error: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
   },
 });
 

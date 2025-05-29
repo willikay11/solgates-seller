@@ -6,16 +6,16 @@ import { useUploadImage } from '@/hooks/useProduct';
 
 type ImagePickerProps = { 
   onImageUploaded: (url: string) => void;
-  selectedImages?: string[];
+  selectedImages: string[];
   productId?: string;
 }
-const ImagePickerExample = ({ onImageUploaded, selectedImages: selectedImagesProps, productId }: ImagePickerProps) => {
-  const [selectedImages, setSelectedImages] = useState(Array(3).fill(null));
-  useEffect(() => {
-    if (selectedImagesProps) {
-      setSelectedImages(selectedImagesProps);
-    }
-  }, [selectedImagesProps]);
+const ImagePickerExample = ({ onImageUploaded, selectedImages, productId }: ImagePickerProps) => {
+  // const [selectedImages, setSelectedImages] = useState(Array(3).fill(null));
+  // useEffect(() => {
+  //   if (selectedImagesProps) {
+  //     setSelectedImages(selectedImagesProps);
+  //   }
+  // }, [selectedImagesProps]);
   const { mutate: uploadImage, data: uploadImageData, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage(productId);
 
   const findLastNonNullIndex = () => {
@@ -49,7 +49,7 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages: selectedImagesPro
         type: 'image/jpeg',
         name: result.assets?.[0]?.fileName,
       });
-      setSelectedImages([...selectedImages, result.assets?.[0]?.uri]);
+      // setSelectedImages([...selectedImages, result.assets?.[0]?.uri]);
     }
   };
 
