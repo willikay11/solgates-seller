@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, ActivityIndicator } from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator, TouchableWithoutFeedback } from "react-native";
 import { Checkbox, RadioButton } from "react-native-paper";
 
 export type CheckedItems = {
@@ -35,26 +35,34 @@ export default function CategoryList({
                     data.map((item, index) => (
                         <View style={styles.checkboxContainer} key={`${item.id}-${index}`}>
                             {multiple ? (
-                            <Checkbox.Item
-                                label={item.label}
-                                status={typeof checkedItems === 'string' ? checkedItems === item.id ? 'checked' : 'unchecked' : checkedItems[item.id] ? 'checked' : 'unchecked'}
-                                onPress={() => toggleCheck({id: item.id, label: item.label})}
-                                labelStyle={{ fontSize: 14 }}   
-                                mode="android"
-                                position="leading"
-                                color="#EA580C"
-                                style={{ height: 40 }}
-                            />
+                                <TouchableWithoutFeedback onPress={() => toggleCheck({ id: item.id, label: item.label })}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', height: 40 }}>
+                                    <Checkbox
+                                        status={
+                                        typeof checkedItems === 'string'
+                                            ? checkedItems === item.id ? 'checked' : 'unchecked'
+                                            : checkedItems[item.id] ? 'checked' : 'unchecked'
+                                        }
+                                        color="#EA580C"
+                                    />
+                                    <Text style={{ fontSize: 14 }}>{item.label}</Text>
+                                    </View>
+                                </TouchableWithoutFeedback>
                             ) : (
-                                <RadioButton.Item
-                                    label={item.label}
-                                    value={item.id}
-                                    status={typeof checkedItems === 'string' ? checkedItems === item.id ? 'checked' : 'unchecked' : checkedItems[item.id] ? 'checked' : 'unchecked'}
-                                    onPress={() => toggleCheck({id: item.id, label: item.label})}
-                                    position="leading"
-                                    color="#EA580C"
-                                    style={{ height: 40 }}
-                                />
+                                <TouchableWithoutFeedback onPress={() => toggleCheck({ id: item.id, label: item.label })}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', height: 40 }}>
+                                    <RadioButton
+                                        value={item.id}
+                                        status={
+                                        typeof checkedItems === 'string'
+                                            ? checkedItems === item.id ? 'checked' : 'unchecked'
+                                            : checkedItems[item.id] ? 'checked' : 'unchecked'
+                                        }
+                                        color="#EA580C"
+                                    />
+                                    <Text style={{ fontSize: 14 }}>{item.label}</Text>
+                                    </View>
+                                </TouchableWithoutFeedback>
                             )}
                         </View>
                     ))
