@@ -47,9 +47,7 @@ export default function Dashboard() {
         try {
           // Step 1: Download image to local cache
           const localUri = FileSystem.cacheDirectory + 'shared-image.jpg';
-          console.log('localUri',localUri);
           const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
-          console.log('downloadResultsss',uri);
 
           if (Platform.OS === 'android') {
             const shareOptions = {
@@ -130,17 +128,11 @@ export default function Dashboard() {
         setSelectedProduct(null);
     }, [isDeleteSuccess, isDeleteError]);
 
-    const isProductArray = (products: any): products is Product[] => {
-        return Array.isArray(products);
-    };
-
     const hasMeta = (products: any): products is { meta: Meta } => {
         return products && typeof products.meta === 'object' && 'total' in products.meta;
     };
 
-    
     const productsList = products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? [];
-    const totalProducts = products?.pages.flatMap(page => page.meta.total) ?? 0;
     return (
         <>
             <Modal modalVisible={menuVisible} setModalVisible={setMenuVisible} title="Menu" >
@@ -149,7 +141,7 @@ export default function Dashboard() {
                         setMenuVisible(false);
                         shareProduct({ 
                             title: `${selectedProduct?.name} - ${selectedProduct?.size.name} on solgates`,
-                            message: `Buy ${selectedProduct?.name} | ${selectedProduct?.genders.map(gender => gender.name).join(', ')} | size: ${selectedProduct?.size.name} on solgates`,
+                            message: `Buy ${selectedProduct?.name} | ${selectedProduct?.genders.map(gender => gender.name).join(', ')} | size: ${selectedProduct?.size.name} on solgates, tap https://staging.solgates.com/product/${selectedProduct?.id}`,
                             imageUrl: selectedProduct?.productImageUrls[0].url ?? '' });
                     }}>
                         <Icon name="share-line" size={14} color="#1F2937" />
@@ -237,7 +229,11 @@ export default function Dashboard() {
                         <Text style={styles.buttonText}>Withdraw Cash</Text>
                     </View>
                 </Button>
-                <Button variant="icon" onPress={() => {}} style={styles.iconButton}>
+                <Button variant="icon" onPress={() => shareProduct({
+                    title: `View my shop ${user?.storeName} on solgates`,
+                    message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,
+                    imageUrl: 'https://res.cloudinary.com/dp1buffig/image/upload/v1732653215/xgx78grvpmffpoznozow.jpg'
+                 })} style={styles.iconButton}>
                     <Icon name="share-line" size={16} color="#ffffff" />
                 </Button>
             </View>
