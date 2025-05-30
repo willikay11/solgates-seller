@@ -5,7 +5,7 @@ import CategoryList from "./category-list";
 import Divider from "@/components/ui/divider";
 import ImagePicker from "@/components/ui/image-picker";
 import Input from "@/components/ui/input";
-import { useAddOrUpdateProduct, useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes } from "@/hooks/useProduct";
+import { useAddOrUpdateProduct, useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUploadImage } from "@/hooks/useProduct";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "expo-router";
 import { Product } from "@/types/product";
@@ -23,6 +23,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     const { data: sizes, isFetching: isFetchingSizes } = useGetSizes();
     const [productUrls, setProductUrls] = useState<{ url: string }[]>(Array(3).fill({ url: '' }));
     const { mutate: addProduct, isPending: isAddingProduct, isSuccess: isAddProductSuccess, isError: isAddProductError } = useAddOrUpdateProduct(product?.id);
+    const { mutateAsync: uploadImage, data: uploadImageData, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage();
     const { data: conditions, isFetching: isFetchingConditions } = useGetConditions();
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [selectedCategoryType, setSelectedCategoryType] = useState<string>('');
@@ -51,7 +52,7 @@ export default function ProductForm({ product }: ProductFormProps) {
         }
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!productName) {
             setNameError('Product name is required');
         }
@@ -63,9 +64,36 @@ export default function ProductForm({ product }: ProductFormProps) {
         }
 
         if (nameError || priceError || quantityError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Please fill in all fields',
+            });
             return;
         }
 
+        if (productUrls.length < 3) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Please upload at least 3 images',
+            });
+            return;
+        }
+
+        const uploadPromises = productUrls.filter((url) => url.url !== '').map((url) => {
+            return uploadImage({
+                uri: url.url,
+                type: 'image/jpeg',
+                name: url.url,
+            });
+        });
+        const responses = await Promise.all(uploadPromises);
+
+        const newProductUrls = responses.map((response) => ({
+            url: response.secure_url,
+        }));
+        
         addProduct({
             name: productName,
             price: price,
@@ -77,7 +105,7 @@ export default function ProductForm({ product }: ProductFormProps) {
             productConditionId: selectedCondition,
             categoryTypeId: selectedCategoryType,
             brandId: selectedBrand,
-            productUrls: productUrls,
+            productUrls: newProductUrls,
         });
     }
 
@@ -221,7 +249,11 @@ export default function ProductForm({ product }: ProductFormProps) {
 
             <View style={styles.buttonContainer}>
                 <Button onPress={() => navigation.goBack()} variant="danger" style={{ paddingHorizontal: 20 }}>Cancel</Button>
-                <Button onPress={handleSubmit} style={{ paddingHorizontal: 50 }} disabled={isAddingProduct} loading={isAddingProduct} >Save</Button>
+                <Button 
+                    onPress={() => handleSubmit()} 
+                    style={{ paddingHorizontal: 50 }} 
+                    disabled={isAddingProduct || isUploadingImage} 
+                    loading={isAddingProduct || isUploadingImage}>Save</Button>
             </View>
         </View>   
     );

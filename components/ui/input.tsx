@@ -28,7 +28,7 @@ const Input: React.FC<InputProps> = ({
   };
 
   return (
-    <> 
+    <View> 
       <View style={[styles.inputContainer, error && { borderColor: 'red' }]}>
         {prefixComponent && <View style={styles.prefix}>{prefixComponent}</View>}
 
@@ -49,7 +49,7 @@ const Input: React.FC<InputProps> = ({
         )}
       </View>
       {error && <Text style={styles.error}>{error}</Text>}
-    </>
+    </View>
   );
 };
 
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   error: {
-    color: 'red',
+    color: '#EF4444',
     fontSize: 12,
     marginTop: 5,
   },

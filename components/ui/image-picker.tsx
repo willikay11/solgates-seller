@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text, Image, Button, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Icon from "react-native-remix-icon";
 import { useUploadImage } from '@/hooks/useProduct';
 
+const MAX_IMAGES = 6;
 type ImagePickerProps = { 
   onImageUploaded: (url: string) => void;
   selectedImages: string[];
@@ -11,14 +12,12 @@ type ImagePickerProps = {
   productId?: string;
 }
 const ImagePickerExample = ({ onImageUploaded, selectedImages, currentIndex, productId }: ImagePickerProps) => {
-  const [loadingIndexes, setLoadingIndexes] = useState<number[]>([]);
   // const [selectedImages, setSelectedImages] = useState(Array(3).fill(null));
   // useEffect(() => {
   //   if (selectedImagesProps) {
   //     setSelectedImages(selectedImagesProps);
   //   }
   // }, [selectedImagesProps]);
-  const { mutate: uploadImage, data: uploadImageData, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage(productId);
 
   const handleSelectImage = async (index?: number) => {
     if (index === undefined) {
@@ -32,26 +31,16 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, currentIndex, pro
       quality: 1,
     });
 
-    setLoadingIndexes([...loadingIndexes, index]);
     if (!result.canceled) {
-      uploadImage({
-        uri: result.assets?.[0]?.uri,
-        type: 'image/jpeg',
-        name: result.assets?.[0]?.fileName,
-      });
+      // uploadImage({
+      //   uri: result.assets?.[0]?.uri,
+      //   type: 'image/jpeg',
+      //   name: result.assets?.[0]?.fileName,
+      // });
       // setSelectedImages([...selectedImages, result.assets?.[0]?.uri]);
+      onImageUploaded(result.assets?.[0]?.uri,);
     }
   };
-
-  useEffect(() => {
-    if (isUploadImageSuccess) {
-      onImageUploaded(uploadImageData.secure_url);
-      setLoadingIndexes(loadingIndexes.filter((index) => index !== currentIndex));
-    }
-    if (isUploadImageError) {
-      console.log("isUploadImageError =====> ", isUploadImageError);
-    }
-  }, [isUploadImageSuccess, isUploadImageError, uploadImageData]);
 
   return (
     <View style={styles.container}>
@@ -63,25 +52,27 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, currentIndex, pro
         >
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.image} />
-          ) : loadingIndexes.includes(index) ? (
-            <ActivityIndicator size="small" color="#EA580C" />
           ) : null}
         </TouchableOpacity>
       ))}
-      <TouchableOpacity 
-        style={styles.imageButtonContainer} 
-        onPress={() =>handleSelectImage(currentIndex + 1)}>
-        <Icon name="image-line" size={21} color="#2563EB" />
-      </TouchableOpacity>
+      {selectedImages.length < MAX_IMAGES && (
+        <TouchableOpacity 
+          style={styles.imageButtonContainer} 
+          onPress={() =>handleSelectImage(currentIndex + 1)}>
+            <Icon name="image-line" size={21} color="#2563EB" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: '2%',
+    marginBottom: 10,
   },
   imageContainer: {
     flexBasis: '23%', // Ensures four items per row
