@@ -255,7 +255,9 @@ export default function ProductForm({ product }: ProductFormProps) {
                     onPress={() => handleSubmit()} 
                     style={{ paddingHorizontal: 50 }} 
                     disabled={isAddingProduct || isUploadingImage} 
-                    loading={isAddingProduct || isUploadingImage}>Save</Button>
+                    loading={isAddingProduct || isUploadingImage}>
+                    {isUploadingImage ? 'Uploading images...' : isAddingProduct ? 'Saving...' : 'Save'}
+                </Button>
             </View>
         </View>   
     );

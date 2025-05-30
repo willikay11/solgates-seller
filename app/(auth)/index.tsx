@@ -56,7 +56,9 @@ export default function Login() {
       <View style={styles.buttonContainer}>
         <Button variant="text" onPress={() => router.push('/forgot-password')}>Forgot Password?</Button>
       </View>
-      <Button onPress={handleLogin} block loading={isSigningIn} disabled={isSigningIn}>Sign In</Button>
+      <Button onPress={handleLogin} block loading={isSigningIn} disabled={isSigningIn}>
+        {isSigningIn ? 'Signing In...' : 'Sign In'}
+      </Button>
     </View>
   );
 }

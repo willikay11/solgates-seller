@@ -51,11 +51,7 @@ const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children,
       Keyboard.dismiss();
       onPress();
     }} disabled={disabled}>
-      {loading ? (
-        <ActivityIndicator size="small" color="#fff" />
-      ) : (
         <Text style={[styles.text, textStyle]}>{children}</Text>
-      )}
     </TouchableOpacity>
   );
 };

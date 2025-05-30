@@ -1,5 +1,6 @@
-import { StyleSheet, View, Text, ActivityIndicator, TouchableWithoutFeedback } from "react-native";
+import { StyleSheet, View, Text, ActivityIndicator, TouchableWithoutFeedback, Keyboard, KeyboardEvent } from "react-native";
 import { Checkbox, RadioButton } from "react-native-paper";
+import { useEffect } from "react";
 
 export type CheckedItems = {
     [key: string]: boolean;
@@ -12,7 +13,8 @@ export default function CategoryList({
     checkedItems,
     toggleCheck,
     visible = true,
-    multiple = true
+    multiple = true,
+    onKeyboardOpen
 }: {
     title: string, 
     data: {id: string, label: string}[], 
@@ -20,8 +22,22 @@ export default function CategoryList({
     checkedItems: string | CheckedItems, 
     toggleCheck: ({id, label}: {id: string, label: string}) => void, 
     visible?: boolean, 
-    multiple?: boolean
+    multiple?: boolean,
+    onKeyboardOpen?: () => void
 }){
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            (event: KeyboardEvent) => {
+                onKeyboardOpen?.();
+            }
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+        };
+    }, [onKeyboardOpen]);
+
     if (!visible) return null;
     return (
         <View style={styles.columnContainer}>
