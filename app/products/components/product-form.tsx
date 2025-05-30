@@ -40,16 +40,18 @@ export default function ProductForm({ product }: ProductFormProps) {
     const [priceError, setPriceError] = useState<string>('');
     const [quantityError, setQuantityError] = useState<string>('');
 
-    const handleImageUploaded = (url: string) => {
-        const index = productUrls.findIndex((image) => image.url === '');
-        if (index === -1) {
-            const newUrls = [...productUrls, { url: url }];
-            setProductUrls(newUrls);
-        } else {
-            const newUrls = [...productUrls];
-            newUrls[index] = { url: url };
-            setProductUrls(newUrls);
-        }
+    const handleImageUploaded = (urls: string[]) => {
+        const currentUrls = [...productUrls];
+        urls.forEach((url) => {
+            const index = currentUrls.findIndex((image) => image.url === '');
+            if (index === -1) {
+                currentUrls.push({ url });
+            } else {
+                currentUrls[index] = { url };
+            }
+        });
+
+        setProductUrls(currentUrls);
     }
 
     const handleSubmit = async () => {

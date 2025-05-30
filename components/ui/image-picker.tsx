@@ -6,7 +6,7 @@ import { useUploadImage } from '@/hooks/useProduct';
 
 const MAX_IMAGES = 6;
 type ImagePickerProps = { 
-  onImageUploaded: (url: string) => void;
+  onImageUploaded: (url: string[]) => void;
   selectedImages: string[];
   currentIndex: number;
   productId?: string;
@@ -29,16 +29,14 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, currentIndex, pro
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_IMAGES - selectedImages.filter((image) => image !== '').length
     });
 
     if (!result.canceled) {
-      // uploadImage({
-      //   uri: result.assets?.[0]?.uri,
-      //   type: 'image/jpeg',
-      //   name: result.assets?.[0]?.fileName,
-      // });
-      // setSelectedImages([...selectedImages, result.assets?.[0]?.uri]);
-      onImageUploaded(result.assets?.[0]?.uri,);
+      // Handle multiple images
+      const newImages = result.assets.map(asset => asset.uri);
+      onImageUploaded(newImages);
     }
   };
 
