@@ -22,3 +22,11 @@ export const useLogin = () => useMutation({
   },
 });
 
+export const useLogout = () => useMutation({
+  mutationFn: () => authService.logout(),
+  onSuccess: () => {
+    SecureStore.deleteItemAsync('user');
+  },
+});
+
+

@@ -1,7 +1,7 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator, Platform, BackHandler } from 'react-native';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
 import { useEffect, useState } from 'react';
@@ -17,17 +17,20 @@ import { Meta } from '@/types/meta';
 import Toast from 'react-native-toast-message';
 import * as FileSystem from 'expo-file-system';
 import Share from 'react-native-share'
+import { useLogout } from '@/hooks/useAuth';
 
 export default function Dashboard() {
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
     const [isWalletAmountVisible, setIsWalletAmountVisible] = useState(false);
+    const [logoutVisible, setLogoutVisible] = useState(false);
     const { data: wallet } = useWallet();
     const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
     const [amount, setAmount] = useState('');
     const { data: products, isFetching } = useProducts(user?.storeId, page);
+    const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
 
@@ -58,8 +61,8 @@ export default function Dashboard() {
                 failOnCancel: false,
               };
 
-            // Step 2a: Android — Use native share + file URI + message
-            await Share.open(shareOptions);
+              // Step 2a: Android — Use native share + file URI + message
+              await Share.open(shareOptions);
           } else {
             // Step 2b: iOS — Share only the image (text won't be shown)
             // await Sharing.shareAsync(downloadResult.uri, {
@@ -128,13 +131,31 @@ export default function Dashboard() {
         setSelectedProduct(null);
     }, [isDeleteSuccess, isDeleteError]);
 
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+            setLogoutVisible(true);
+            return true; // Prevent default behavior
+        });
+
+        return () => backHandler.remove();
+    }, []);
+
+    useEffect(() => {
+        if (isLogoutSuccess) {
+            router.replace('/(auth)');
+        } else if (isLogoutError) {
+            Toast.show({ type: 'error', text1: 'Logout failed', text2: 'Please try again' });
+        }
+    }, [isLogoutSuccess, isLogoutError]);
+
     const hasMeta = (products: any): products is { meta: Meta } => {
         return products && typeof products.meta === 'object' && 'total' in products.meta;
     };
 
     const productsList = products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? [];
+    
     return (
-        <>
+        <View style={styles.scrollContainer}>
             <Modal modalVisible={menuVisible} setModalVisible={setMenuVisible} title="Menu" >
                 <View>
                     <TouchableOpacity style={styles.modalItem} onPress={() => {
@@ -192,54 +213,68 @@ export default function Dashboard() {
                     </Button>
                 </View>
             </Modal>
-            
+
+            <Modal modalVisible={logoutVisible} setModalVisible={setLogoutVisible} title="Logout" >
+                <View style={styles.logoutContainer}>
+                    <Text style={styles.logoutText}>Are you sure you want to logout?</Text>
+                    <Button variant="primary" onPress={() => logout()} loading={isLoggingOut} disabled={isLoggingOut}>
+                        <Text style={styles.buttonText}>Logout</Text>
+                    </Button>
+                </View>
+            </Modal>
+
             <View style={styles.container}>
-            <View style={styles.headerContainer}>
-                <Text style={styles.headerText}>{user?.storeName}</Text>
-                <View style={styles.headerIconContainer}>
-                    <Icon name="notification-3-line" size={20} color="#EA580C" />
-                </View>
-            </View>
-            <Divider width={12} height={2} />
-            <View style={styles.walletContainer}>
-                <Text style={styles.contentHeaderText}>Wallet Balance</Text>
-                <View style={styles.dashboardWalletBalanceContainer}>
-                    {
-                        isWalletAmountVisible ? (
-                            <Text style={styles.walletBalanceText}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
-                        ) : (
-                            <Text style={styles.walletBalanceText}>********</Text>
-                        )
-                    }
-                    <TouchableOpacity onPress={() => setIsWalletAmountVisible(!isWalletAmountVisible)}>
-                        {isWalletAmountVisible ? <Icon name="eye-line" size={20} color="#1F2937" /> : <Icon name="eye-close-line" size={20} color="#1F2937" />}
-                    </TouchableOpacity>
-                </View>
-            </View>
-            <View style={styles.actionContainer}>
-                <Button variant="primary" onPress={() => router.push('/products/add')} style={styles.primaryButton}>
-                    <View style={styles.buttonContent}>
-                        <Icon name="add-line" size={20} color="#FFFFFF" />
-                        <Text style={styles.buttonText}>New Product</Text>
+                <View style={styles.headerContainer}>
+                    <Text style={styles.headerText}>{user?.storeName}</Text>
+                    <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+                        <Button variant="icon" onPress={() => setLogoutVisible(true)} style={[styles.iconButton, {height: 40, width: 40, backgroundColor: '#FEE2E2'}]}>
+                            <Icon name="logout-circle-r-line" size={20} color="#EF4444" />
+                        </Button>
+                        <View style={styles.headerIconContainer}>
+                            <Icon name="notification-3-line" size={20} color="#EA580C" />
+                        </View>
                     </View>
-                </Button>
-                <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
-                    <View style={styles.buttonContent}>
-                        <Icon name="arrow-left-down-line" size={20} color="#FFFFFF" />
-                        <Text style={styles.buttonText}>Withdraw Cash</Text>
+                </View>
+                <Divider width={12} height={2} />
+                <View style={styles.walletContainer}>
+                    <Text style={styles.contentHeaderText}>Wallet Balance</Text>
+                    <View style={styles.dashboardWalletBalanceContainer}>
+                        {
+                            isWalletAmountVisible ? (
+                                <Text style={styles.walletBalanceText}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
+                            ) : (
+                                <Text style={styles.walletBalanceText}>********</Text>
+                            )
+                        }
+                        <TouchableOpacity onPress={() => setIsWalletAmountVisible(!isWalletAmountVisible)}>
+                            {isWalletAmountVisible ? <Icon name="eye-line" size={20} color="#1F2937" /> : <Icon name="eye-close-line" size={20} color="#1F2937" />}
+                        </TouchableOpacity>
                     </View>
-                </Button>
-                <Button variant="icon" onPress={() => shareProduct({
-                    title: `View my shop ${user?.storeName} on solgates`,
-                    message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,
-                    imageUrl: 'https://res.cloudinary.com/dp1buffig/image/upload/v1732653215/xgx78grvpmffpoznozow.jpg'
-                 })} style={styles.iconButton}>
-                    <Icon name="share-line" size={16} color="#ffffff" />
-                </Button>
-            </View>
-            </View>
-            <Divider width="100%" height={1} color="#F3F4F6" />
-            <View style={styles.productContainer}>
+                </View>
+                <View style={styles.actionContainer}>
+                    <Button variant="primary" onPress={() => router.push('/products/add')} style={styles.primaryButton}>
+                        <View style={styles.buttonContent}>
+                            <Icon name="add-line" size={20} color="#FFFFFF" />
+                            <Text style={styles.buttonText}>New Product</Text>
+                        </View>
+                    </Button>
+                    <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
+                        <View style={styles.buttonContent}>
+                            <Icon name="arrow-left-down-line" size={20} color="#FFFFFF" />
+                            <Text style={styles.buttonText}>Withdraw Cash</Text>
+                        </View>
+                    </Button>
+                    <Button variant="icon" onPress={() => shareProduct({
+                        title: `View my shop ${user?.storeName} on solgates`,
+                        message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,
+                        imageUrl: 'https://res.cloudinary.com/dp1buffig/image/upload/v1732653215/xgx78grvpmffpoznozow.jpg'
+                    })} style={styles.iconButton}>
+                        <Icon name="share-line" size={16} color="#ffffff" />
+                    </Button>
+                </View>
+                </View>
+                <Divider width="100%" height={1} color="#F3F4F6" />
+                <View style={styles.productContainer}>
                 <Text style={styles.productHeaderText}>Your Stock ({productsList.length} Products)</Text>
                 <View style={styles.productListContainer}>
                     <FlatList
@@ -284,7 +319,7 @@ export default function Dashboard() {
                     />
                 </View>
             </View>
-        </>
+        </View>
     )
 }
 
@@ -459,4 +494,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
+    logoutContainer: {
+        flexDirection: 'column',
+        gap: 5
+    },
+    logoutText: {
+        fontSize: 14,
+        textAlign: 'center',
+        fontWeight: '400',
+        color: '#1F2937',
+        marginBottom: 10
+    }
 })

@@ -40,7 +40,14 @@ export default function RootLayout() {
       <StatusBar barStyle="dark-content" />
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="dashboard/index" options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="dashboard/index" 
+          options={{ 
+            headerShown: false,
+            gestureEnabled: false,
+            animation: 'none'
+          }} 
+        />
         <Stack.Screen name="products/add" options={{ headerShown: false }} />
         <Stack.Screen name="products/edit/[id]" options={{ headerShown: false }} />
       </Stack>

@@ -15,6 +15,13 @@ export const authService = {
       throw new Error('Login failed');
     }
   },
+  logout: async () => {
+    try {
+      await api.get('/logout');
+    } catch (error) {
+      throw new Error('Logout failed');
+    }
+  },
   sendPasswordResetEmail: async (email: string) => {
     try {
     //   await sendPasswordResetEmail(auth, email);
