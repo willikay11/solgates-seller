@@ -7,7 +7,7 @@ import Button from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/modal';
 import Input from '@/components/ui/input';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
 import numeral from 'numeral';
@@ -33,6 +33,7 @@ export default function Dashboard() {
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
+    const pathname = usePathname();
 
     const handleWithdraw = () => {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
@@ -133,12 +134,16 @@ export default function Dashboard() {
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-            setLogoutVisible(true);
-            return true; // Prevent default behavior
+            // Only show logout dialog if we're on the dashboard screen
+            if (pathname === '/dashboard') {
+                setLogoutVisible(true);
+                return true; // Prevent default behavior
+            }
+            return false; // Allow default behavior for other screens
         });
 
         return () => backHandler.remove();
-    }, []);
+    }, [pathname]);
 
     useEffect(() => {
         if (isLogoutSuccess) {
