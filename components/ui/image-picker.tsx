@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text, Image, Button } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text, Image, Button, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Icon from "react-native-remix-icon";
 import { useUploadImage } from '@/hooks/useProduct';
@@ -7,9 +7,11 @@ import { useUploadImage } from '@/hooks/useProduct';
 type ImagePickerProps = { 
   onImageUploaded: (url: string) => void;
   selectedImages: string[];
+  currentIndex: number;
   productId?: string;
 }
-const ImagePickerExample = ({ onImageUploaded, selectedImages, productId }: ImagePickerProps) => {
+const ImagePickerExample = ({ onImageUploaded, selectedImages, currentIndex, productId }: ImagePickerProps) => {
+  const [loadingIndexes, setLoadingIndexes] = useState<number[]>([]);
   // const [selectedImages, setSelectedImages] = useState(Array(3).fill(null));
   // useEffect(() => {
   //   if (selectedImagesProps) {
@@ -18,21 +20,9 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, productId }: Imag
   // }, [selectedImagesProps]);
   const { mutate: uploadImage, data: uploadImageData, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage(productId);
 
-  const findLastNonNullIndex = () => {
-    for (let i = selectedImages.length - 1; i >= 0; i--) {
-      if (selectedImages[i] !== null) {
-        return i;
-      }
-    }
-    return 0; // Return -1 if all elements are null
-  };
-
   const handleSelectImage = async (index?: number) => {
     if (index === undefined) {
-      index = findLastNonNullIndex();
-      if (index >= 2) {
-        index = index + 1;
-      }
+      index = currentIndex + 1;
     }
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -42,7 +32,7 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, productId }: Imag
       quality: 1,
     });
 
-    
+    setLoadingIndexes([...loadingIndexes, index]);
     if (!result.canceled) {
       uploadImage({
         uri: result.assets?.[0]?.uri,
@@ -56,6 +46,7 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, productId }: Imag
   useEffect(() => {
     if (isUploadImageSuccess) {
       onImageUploaded(uploadImageData.secure_url);
+      setLoadingIndexes(loadingIndexes.filter((index) => index !== currentIndex));
     }
     if (isUploadImageError) {
       console.log("isUploadImageError =====> ", isUploadImageError);
@@ -72,12 +63,14 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, productId }: Imag
         >
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.image} />
+          ) : loadingIndexes.includes(index) ? (
+            <ActivityIndicator size="small" color="#EA580C" />
           ) : null}
         </TouchableOpacity>
       ))}
       <TouchableOpacity 
         style={styles.imageButtonContainer} 
-        onPress={() =>handleSelectImage(findLastNonNullIndex() + 1)}>
+        onPress={() =>handleSelectImage(currentIndex + 1)}>
         <Icon name="image-line" size={21} color="#2563EB" />
       </TouchableOpacity>
     </View>

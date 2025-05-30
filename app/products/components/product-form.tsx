@@ -21,7 +21,7 @@ export default function ProductForm({ product }: ProductFormProps) {
     const { data: colours, isFetching: isFetchingColours } = useGetColours();
     const { data: categoryTypes, isFetching: isFetchingCategoryTypes } = useGetCategoryTypes();
     const { data: sizes, isFetching: isFetchingSizes } = useGetSizes();
-    const [productUrls, setProductUrls] = useState<{ url: string }[]>(Array(3).fill(null));
+    const [productUrls, setProductUrls] = useState<{ url: string }[]>(Array(3).fill({ url: '' }));
     const { mutate: addProduct, isPending: isAddingProduct, isSuccess: isAddProductSuccess, isError: isAddProductError } = useAddOrUpdateProduct(product?.id);
     const { data: conditions, isFetching: isFetchingConditions } = useGetConditions();
     const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -40,7 +40,15 @@ export default function ProductForm({ product }: ProductFormProps) {
     const [quantityError, setQuantityError] = useState<string>('');
 
     const handleImageUploaded = (url: string) => {
-        setProductUrls([...productUrls, { url: url }]);
+        const index = productUrls.findIndex((image) => image.url === '');
+        if (index === -1) {
+            const newUrls = [...productUrls, { url: url }];
+            setProductUrls(newUrls);
+        } else {
+            const newUrls = [...productUrls];
+            newUrls[index] = { url: url };
+            setProductUrls(newUrls);
+        }
     }
 
     const handleSubmit = () => {
@@ -72,6 +80,15 @@ export default function ProductForm({ product }: ProductFormProps) {
             productUrls: productUrls,
         });
     }
+
+    const getCurrentIndex = () => {
+        for (let i = productUrls.length - 1; i >= 0; i--) {
+          if (productUrls[i].url !== '') {
+            return i;
+          }
+        }
+        return 0; // Return -1 if all elements are null
+      };
 
     useEffect(() => {
         if (isAddProductSuccess) {
@@ -111,7 +128,12 @@ export default function ProductForm({ product }: ProductFormProps) {
         <View style={styles.formContainer}>
             <Text style={styles.label}>Product Photos</Text>
             <Divider width="100%" color="#E5E7EB" />
-            <ImagePicker onImageUploaded={handleImageUploaded} selectedImages={productUrls.map((image) => image.url)} productId={product?.id} />
+            <ImagePicker
+                onImageUploaded={handleImageUploaded}
+                selectedImages={productUrls.map((image) => image.url)}
+                productId={product?.id}
+                currentIndex={getCurrentIndex()}
+            />
             <Input value={productName} onChangeText={setProductName} placeholder="Product Name" error={nameError} />
             <Input value={price} onChangeText={setPrice} placeholder="Price" keyboardType="numeric" error={priceError} />
             <Input value={quantity} onChangeText={setQuantity} placeholder="Quantity" keyboardType="numeric" error={quantityError} />    
