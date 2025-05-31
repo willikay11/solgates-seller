@@ -67,7 +67,9 @@ export const productService = {
             formData.append('quantity', String(parseInt(product.quantity, 10)));
             formData.append('category_id', product.categoryId);
             formData.append('category_type_id', product.categoryTypeId);
-            formData.append('brand_id', product.brandId);
+            if (product.brandId) {
+                formData.append('brand_id', product.brandId);
+            }
             formData.append('product_condition_id', product.productConditionId);
             formData.append('store_id', JSON.parse(userData ?? '{}').storeId);
             formData.append('size_id', product.sizeId);

@@ -19,7 +19,7 @@ export default function CategoryList({
     title: string, 
     data: {id: string, label: string}[], 
     isLoading: boolean,
-    checkedItems: string | CheckedItems, 
+    checkedItems?: string | CheckedItems, 
     toggleCheck: ({id, label}: {id: string, label: string}) => void, 
     visible?: boolean, 
     multiple?: boolean,
@@ -57,7 +57,7 @@ export default function CategoryList({
                                         status={
                                         typeof checkedItems === 'string'
                                             ? checkedItems === item.id ? 'checked' : 'unchecked'
-                                            : checkedItems[item.id] ? 'checked' : 'unchecked'
+                                            : checkedItems?.[item.id] ? 'checked' : 'unchecked'
                                         }
                                         color="#EA580C"
                                     />
@@ -72,7 +72,7 @@ export default function CategoryList({
                                         status={
                                         typeof checkedItems === 'string'
                                             ? checkedItems === item.id ? 'checked' : 'unchecked'
-                                            : checkedItems[item.id] ? 'checked' : 'unchecked'
+                                            : checkedItems?.[item.id] ? 'checked' : 'unchecked'
                                         }
                                         color="#EA580C"
                                     />

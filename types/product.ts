@@ -1,12 +1,11 @@
 import { Category } from "@/types/category";
 import { CategoryType } from "@/types/categoryType";
 import { Condition } from "@/types/condition";
-import { Size } from "./size";
-import { Seller } from "./seller";
-import { ProductImage } from "./productImage";
-import { Gender } from "./gender";
-import { Brand } from "./brand";
-import { Colour } from "./colour";
+import { Size } from "@/types/size";
+import { Seller } from "@/types/seller";
+import { Gender } from "@/types/gender";
+import { Brand } from "@/types/brand";
+import { Colour } from "@/types/colour";
 
 export interface AddProduct {
     name: string;
@@ -15,7 +14,7 @@ export interface AddProduct {
     categoryId: string;
     categoryTypeId: string;
     productConditionId: string;
-    brandId: string;
+    brandId?: string;
     colours: string[];
     genders: string[];
     productUrls: { url: string }[];

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import Button from '@/components/ui/button';
 import React, { useEffect, useState } from "react";
 import CategoryList from "./category-list";
@@ -8,7 +8,7 @@ import Input from "@/components/ui/input";
 import { useAddOrUpdateProduct, useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUploadImage } from "@/hooks/useProduct";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "expo-router";
-import { Product } from "@/types/product";
+import { AddProduct, Product } from "@/types/product";
 
 type ProductFormProps = {
     product?: Product;
@@ -23,11 +23,11 @@ export default function ProductForm({ product }: ProductFormProps) {
     const { data: sizes, isFetching: isFetchingSizes } = useGetSizes();
     const [productUrls, setProductUrls] = useState<{ url: string }[]>(Array(3).fill({ url: '' }));
     const { mutate: addProduct, isPending: isAddingProduct, isSuccess: isAddProductSuccess, isError: isAddProductError } = useAddOrUpdateProduct(product?.id);
-    const { mutateAsync: uploadImage, data: uploadImageData, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage();
+    const { mutateAsync: uploadImage, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage();
     const { data: conditions, isFetching: isFetchingConditions } = useGetConditions();
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [selectedCategoryType, setSelectedCategoryType] = useState<string>('');
-    const [selectedBrand, setSelectedBrand] = useState<string>('');
+    const [selectedBrand, setSelectedBrand] = useState<string>();
     const [selectedCondition, setSelectedCondition] = useState<string>('');
     const [selectedColours, setSelectedColours] = useState<string[]>([]);
     const [selectedSize, setSelectedSize] = useState<string>('');
@@ -90,13 +90,14 @@ export default function ProductForm({ product }: ProductFormProps) {
                 name: url.url,
             });
         });
+
         const responses = await Promise.all(uploadPromises);
 
         const newProductUrls = responses.map((response) => ({
             url: response.secure_url,
         }));
         
-        addProduct({
+        const data: AddProduct = {
             name: productName,
             price: price,
             quantity: quantity,
@@ -106,9 +107,13 @@ export default function ProductForm({ product }: ProductFormProps) {
             categoryId: selectedCategory,
             productConditionId: selectedCondition,
             categoryTypeId: selectedCategoryType,
-            brandId: selectedBrand,
-            productUrls: newProductUrls,
-        });
+            productUrls: newProductUrls, 
+        }
+        if (selectedBrand) {
+            data.brandId = selectedBrand;
+        }
+
+        addProduct(data);
     }
 
     const getCurrentIndex = () => {
@@ -174,9 +179,7 @@ export default function ProductForm({ product }: ProductFormProps) {
                 data={categories?.map((category) => ({ id: category.id, label: category.name })) ?? []}
                 checkedItems={selectedCategory}
                 toggleCheck={({id, label}: {id: string, label: string}) => {
-                    if (label.toLowerCase() === 'shoes') {
-                        setShowNoneShoesCategory(!showNoneShoesCategory);
-                    }
+                    setShowNoneShoesCategory(label.toLowerCase() === 'shoes');
                     setSelectedCategory(id);
                 }}
                 multiple={false}
@@ -184,7 +187,7 @@ export default function ProductForm({ product }: ProductFormProps) {
             <CategoryList 
                 title="Category Types" 
                 isLoading={isFetchingCategoryTypes} 
-                data={categoryTypes?.map((categoryType) => ({ id: categoryType.id, label: categoryType.name })) ?? []} 
+                data={selectedCategory ? categoryTypes?.filter((categoryType) => categoryType.category.id === selectedCategory).map((categoryType) => ({ id: categoryType.id, label: categoryType.name })) ?? [] : []} 
                 checkedItems={selectedCategoryType} 
                 toggleCheck={({id}: {id: string, label: string}) => {
                     setSelectedCategoryType(id);

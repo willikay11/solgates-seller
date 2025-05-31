@@ -18,6 +18,7 @@ export const useLogin = () => useMutation({
       storeName: data.storeName,
       storeId: data.storeId,
       accessToken: data.accessToken,
+      displayImageUrl: data.displayImageUrl,
     }));
   },
 });

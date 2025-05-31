@@ -4,7 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
-import { StatusBar } from 'react-native';
+import { SafeAreaView, StatusBar } from 'react-native';
 import CustomToast from '@/components/ui/custom-toast';
 SplashScreen.preventAutoHideAsync();
 
@@ -38,6 +38,7 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>  
       <StatusBar barStyle="dark-content" />
+      <SafeAreaView style={{ flex: 1 }}>
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen 
@@ -49,9 +50,10 @@ export default function RootLayout() {
           }} 
         />
         <Stack.Screen name="products/add" options={{ headerShown: false }} />
-        <Stack.Screen name="products/edit/[id]" options={{ headerShown: false }} />
-      </Stack>
-      <Toast config={toastConfig} />
+          <Stack.Screen name="products/edit/[id]" options={{ headerShown: false }} />
+        </Stack>
+        <Toast config={toastConfig} />
+      </SafeAreaView>
     </QueryClientProvider>
   );
 }

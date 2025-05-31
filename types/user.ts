@@ -17,7 +17,7 @@ export interface User {
     "storeStatusId": number,
     "storeName": string,
     "storeStatusName": string,
-    "storeImageUrl": string,
+    "displayImageUrl": string,
     "accessToken": string,
     "tokenType": string,
     "expiresIn": number,

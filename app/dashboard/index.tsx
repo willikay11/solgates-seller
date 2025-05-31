@@ -223,7 +223,7 @@ export default function Dashboard() {
                 <View style={styles.logoutContainer}>
                     <Text style={styles.logoutText}>Are you sure you want to logout?</Text>
                     <Button variant="primary" onPress={() => logout()} loading={isLoggingOut} disabled={isLoggingOut}>
-                        <Text style={styles.buttonText}>Logout</Text>
+                        <Text style={styles.buttonText}>{isLoggingOut ? 'Logging Out...' : 'Logout'}</Text>
                     </Button>
                 </View>
             </Modal>
@@ -272,7 +272,7 @@ export default function Dashboard() {
                     <Button variant="icon" onPress={() => shareProduct({
                         title: `View my shop ${user?.storeName} on solgates`,
                         message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,
-                        imageUrl: 'https://res.cloudinary.com/dp1buffig/image/upload/v1732653215/xgx78grvpmffpoznozow.jpg'
+                        imageUrl: user?.displayImageUrl ?? ''
                     })} style={styles.iconButton}>
                         <Icon name="share-line" size={16} color="#ffffff" />
                     </Button>
@@ -407,6 +407,7 @@ const styles = StyleSheet.create({
         color: '#1F2937'
     },
     productListContainer: {
+        // flex: 1,
         marginTop: 10,
         gap: 20,
     },
