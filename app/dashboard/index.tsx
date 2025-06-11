@@ -1,10 +1,11 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, ActivityIndicator, Platform, BackHandler } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Platform, BackHandler, Animated, Easing } from 'react-native';
+import { SwipeListView } from 'react-native-swipe-list-view';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Modal } from '@/components/ui/modal';
 import Input from '@/components/ui/input';
 import { router, usePathname } from 'expo-router';
@@ -28,12 +29,15 @@ export default function Dashboard() {
     const { data: wallet } = useWallet();
     const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
+    const [productsList, setProductsList] = useState<Product[]>([]);
     const [amount, setAmount] = useState('');
     const { data: products, isFetching } = useProducts(user?.storeId, page);
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
     const pathname = usePathname();
+    const fadeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
+    const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
     const handleWithdraw = () => {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
@@ -157,7 +161,39 @@ export default function Dashboard() {
         return products && typeof products.meta === 'object' && 'total' in products.meta;
     };
 
-    const productsList = products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? [];
+    // Initialize animation values for new items
+    const initializeAnimation = (itemId: string) => {
+        if (!fadeAnimations[itemId]) {
+            fadeAnimations[itemId] = new Animated.Value(1);
+        }
+    };
+
+    // Clean up animation values for removed items
+    const cleanupAnimation = (itemId: string) => {
+        if (fadeAnimations[itemId]) {
+            delete fadeAnimations[itemId];
+        }
+    };
+
+    // Get the transform for folding animation
+    const getFoldingTransform = (itemId: string, index: number) => {
+        if (!deletingItemId) return [{ translateY: 0 }];
+        
+        const deletingIndex = productsList.findIndex(item => item.id.toString() === deletingItemId);
+        if (deletingIndex === -1 || index <= deletingIndex) return [{ translateY: 0 }];
+        
+        // Items below the deleted item should move up
+        return [{
+            translateY: fadeAnimations[deletingItemId].interpolate({
+                inputRange: [0, 1],
+                outputRange: [-90, 0] // Move up by the height of one item (90px)
+            })
+        }];
+    };
+
+    useEffect(() => {
+        setProductsList(products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? []);
+    }, [products])
     
     return (
         <View style={styles.scrollContainer}>
@@ -282,17 +318,83 @@ export default function Dashboard() {
                 <View style={styles.productContainer}>
                 <Text style={styles.productHeaderText}>Your Stock ({productsList.length} Products)</Text>
                 <View style={styles.productListContainer}>
-                    <FlatList
+                    <SwipeListView
                         data={productsList}
-                        keyExtractor={(_, index) => index.toString()}
+                        keyExtractor={(item) => item.id.toString()}
+                        disableLeftSwipe={true}
+                        renderItem={({ item, index }: { item: Product; index: number }) => {
+                            const itemId = item.id.toString();
+                            initializeAnimation(itemId);
+                            return (
+                                <Animated.View style={[
+                                    styles.productItem, 
+                                    { 
+                                        opacity: fadeAnimations[itemId],
+                                        transform: getFoldingTransform(itemId, index)
+                                    }
+                                ]}>
+                                    <Image source={{ uri: item.productImageUrls[0].url }} style={styles.productImage} />
+                                    <View style={styles.productItemTextContainerLeft}>
+                                        <View style={styles.productItemTextContainer}>
+                                            <Text style={styles.productItemText}>{item.name}</Text>
+                                            <Text style={styles.productItemTextDescription}>{item.size.name} | {item.genders.map(gender => gender.name).join(', ')}</Text>
+                                            <Text style={styles.productItemText}>KES {numeral(item.price).format('0,0.00')}</Text>
+                                        </View>
+                                        <View style={styles.productItemActionContainer}>
+                                            <TouchableOpacity onPress={() => {
+                                                    setMenuVisible(true)
+                                                    setSelectedProduct(item)
+                                                }}>
+                                                <Icon name="more-2-fill" size={20} color="#EA580C" />
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </Animated.View>
+                            );
+                        }}
+                        renderHiddenItem={({ item, index }: { item: Product; index: number }) => {
+                            const itemId = item.id.toString();
+                            return (
+                                <Animated.View style={[
+                                    styles.hiddenContainer,
+                                    { 
+                                        opacity: deletingItemId === itemId ? 0 : 1,
+                                        transform: getFoldingTransform(itemId, index)
+                                    }
+                                ]}>
+                                    <TouchableOpacity onPress={() => {
+                                        const itemId = item.id.toString();
+                                        setDeletingItemId(itemId);
+                                        
+                                        // Animate with easeOut effect
+                                        Animated.timing(fadeAnimations[itemId], {
+                                            toValue: 0,
+                                            duration: 400,
+                                            useNativeDriver: true,
+                                            easing: Easing.out(Easing.cubic),
+                                        }).start(() => {
+                                            // After animation completes, update the list
+                                            const newList = productsList.filter((i: Product) => i.id !== item.id);
+                                            setProductsList(newList);
+                                            // Clean up the animation value and reset deleting state
+                                            cleanupAnimation(itemId);
+                                            setDeletingItemId(null);
+                                            deleteProduct(item.id)
+                                        });
+                                    }}>
+                                        <Icon name="delete-bin-line" size={32} color="red" />
+                                    </TouchableOpacity>
+                                </Animated.View>
+                            );
+                        }}
+                        leftOpenValue={50}
+                        rightOpenValue={0}
                         onEndReached={() => {
                             if (hasMeta(products) && products.meta.currentPage < products.meta.lastPage) {
                                 setPage(products.meta.currentPage + 1);
                             }
                         }}
                         onEndReachedThreshold={0.5}
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ flexGrow: 1 }}
                         ListFooterComponent={() => {
                             if (isFetching) {
                                 return (
@@ -303,26 +405,6 @@ export default function Dashboard() {
                             }
                             return null;
                         }}
-                        renderItem={({ item }: { item: Product }) => (
-                            <View style={styles.productItem}>
-                            <Image source={{ uri: item.productImageUrls[0].url }} style={styles.productImage} />
-                            <View style={styles.productItemTextContainerLeft}>
-                                <View style={styles.productItemTextContainer}>
-                                    <Text style={styles.productItemText}>{item.name}</Text>
-                                    <Text style={styles.productItemTextDescription}>{item.size.name} | {item.genders.map(gender => gender.name).join(', ')}</Text>
-                                    <Text style={styles.productItemText}>KES {numeral(item.price).format('0,0.00')}</Text>
-                                </View>
-                                <View style={styles.productItemActionContainer}>
-                                    <TouchableOpacity onPress={() => {
-                                            setMenuVisible(true)
-                                            setSelectedProduct(item)
-                                        }}>
-                                        <Icon name="more-2-fill" size={20} color="#EA580C" />
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        </View>
-                        )}
                     />
                 </View>
             </View>
@@ -417,6 +499,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 10,
+        backgroundColor: 'white'
     },
     productItemTextContainer: {
         flexDirection: 'column',
@@ -512,5 +595,10 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: '#1F2937',
         marginBottom: 10
+    },
+    hiddenContainer: {
+        flex: 1,
+        alignItems: 'flex-start',
+        justifyContent: 'center',
     }
 })
