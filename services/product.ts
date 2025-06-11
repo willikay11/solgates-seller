@@ -1,0 +1,168 @@
+import { parseSnakeToCamel } from "@/utils/parseSnakeToCamel";
+import { api } from "./api";
+import { AddProduct, Product } from "@/types/product";
+import { Pagination } from "@/types/pagination";
+import { Brand } from "@/types/brand";
+import { Colour } from "@/types/colour";
+import { Size } from "@/types/size";
+import { Category } from "@/types/category";
+import { CategoryType } from "@/types/categoryType";
+import { Gender } from "@/types/gender";
+import { Condition } from "@/types/condition";
+import * as SecureStore from 'expo-secure-store';
+
+export const productService = {
+    getGenders: async (): Promise<Gender[]> => {
+        const response = await api.get('/gender/list?filter[is_active]=1');
+        return parseSnakeToCamel(response.data?.genders);
+    },
+
+    getCategories: async (): Promise<Category[]> => {
+        const response = await api.get('/category/list?filter[is_active]=1');
+        return parseSnakeToCamel(response.data?.categories);
+    },
+
+    getCategoryTypes: async (): Promise<CategoryType[]> => {
+        const response = await api.get('/category-type/list?filter[is_active]=1');
+        return parseSnakeToCamel(response.data?.category_types);
+    },
+
+    getBrands: async (): Promise<Brand[]> => {
+        const response = await api.get('/brand/list?filter[is_active]=1');
+        return parseSnakeToCamel(response.data?.brands);
+    },
+
+    getColours: async (): Promise<Colour[]> => {
+        const response = await api.get('/colour/list?filter[is_active]=1');
+        return parseSnakeToCamel(response.data?.colours);
+    },
+    
+    getSizes: async (): Promise<Size[]> => {
+        const response = await api.get('/size/list?filter[is_active]=1');
+        return parseSnakeToCamel(response.data?.sizes);
+    },
+
+    getProductConditions: async (): Promise<Condition[]> => {
+        const response = await api.get('/product-condition/list?filter[is_active]=1');
+        return parseSnakeToCamel(response.data?.product_conditions);
+    },
+
+    getProducts: async (storeId?: string, page: number = 1): Promise<Pagination<Product>> => {
+        const response = await api.get(`/product/list?filter[store_id]=${storeId}&page=${page}`);
+        return parseSnakeToCamel(response.data);
+    },
+
+    getProductById: async (productId: string): Promise<Product> => {
+        const response = await api.get(`/product/${productId}/admin-view`);
+        return parseSnakeToCamel(response.data?.product);
+    },
+
+    addOrUpdateProduct: async (product: AddProduct, id?: string) => {
+        try {
+            const userData = await SecureStore.getItemAsync('user');
+
+            const formData = new FormData();
+            formData.append('name', product.name);
+            formData.append('price', product.price.toString());
+            formData.append('quantity', String(parseInt(product.quantity, 10)));
+            formData.append('category_id', product.categoryId);
+            formData.append('category_type_id', product.categoryTypeId);
+            if (product.brandId) {
+                formData.append('brand_id', product.brandId);
+            }
+            formData.append('product_condition_id', product.productConditionId);
+            formData.append('store_id', JSON.parse(userData ?? '{}').storeId);
+            formData.append('size_id', product.sizeId);
+
+            formData.append(
+                'colours',
+                product.colours.length
+                  ? JSON.stringify(
+                      product.colours.map((colour: string) => ({ colour_id: colour }))
+                    )
+                  : ''
+              );
+            formData.append(
+                'genders',
+                product.genders.length
+                  ? JSON.stringify(
+                      product.genders.map((gender: string) => ({ gender_id: gender }))
+                    )
+                  : ''
+              );
+
+            formData.append(
+                'product_image_urls',
+                product.productUrls.length
+                  ? JSON.stringify(
+                      product.productUrls
+                    )
+                  : ''
+              );
+
+            const url = id ? `/product/${id}/update` : '/product/create';
+
+            const method = id ? 'patch' : 'post';
+
+            const response = await api[method](url, id ? {
+                name: product.name,
+                price: product.price,
+                quantity: product.quantity,
+                category_id: product.categoryId,
+                category_type_id: product.categoryTypeId,
+                brand_id: product.brandId,
+                product_condition_id: product.productConditionId,
+                size_id: product.sizeId,
+                colours: JSON.stringify(product.colours.map((colour: string) => ({ colour_id: colour }))),
+                genders: JSON.stringify(product.genders.map((gender: string) => ({ gender_id: gender }))),
+            } : formData, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': id ? 'application/json' : 'multipart/form-data',
+                }
+            });
+
+            return parseSnakeToCamel(response.data);
+        } catch (error: any) {
+            console.log("error =====> ", error.response);
+            throw error;
+        }
+        
+    },
+
+    uploadImage: async (image: any, id?: string) => {
+        const formData = new FormData();
+        formData.append('file', image);
+        formData.append('upload_preset', 't9btjy9q');
+        try {
+            const response = await fetch('https://api.cloudinary.com/v1_1/dp1buffig/image/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await response.json();
+            if (id) {
+                productService.addProductImage(id, data.secure_url);
+            }
+            return data;
+        } catch (error) {
+            console.log("error =====> ", error);
+            throw error;
+        }
+    },
+    deleteProduct: async (productId: string) => {
+        const response = await api.delete(`/product/${productId}/delete`);
+        return parseSnakeToCamel(response.data);
+    },
+    addProductImage: async (productId: string, imageUrl: string) => {
+        try {
+            const response = await api.post(`/product/${productId}/image/create`, {
+                product_image_urls: JSON.stringify([{ url: imageUrl }])
+            });
+            return parseSnakeToCamel(response.data);
+        } catch (error: any) {
+            console.log("error =====> ", error.response);
+            throw error;
+        }    
+    }
+};
+    
