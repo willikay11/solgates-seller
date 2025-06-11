@@ -291,6 +291,8 @@ export default function Dashboard() {
                             }
                         }}
                         onEndReachedThreshold={0.5}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ flexGrow: 1 }}
                         ListFooterComponent={() => {
                             if (isFetching) {
                                 return (
@@ -400,6 +402,7 @@ const styles = StyleSheet.create({
     productContainer: {
         padding: 20,
         backgroundColor: 'white',
+        flex: 1,
     },
     productHeaderText: {
         fontSize: 16,
@@ -407,9 +410,8 @@ const styles = StyleSheet.create({
         color: '#1F2937'
     },
     productListContainer: {
-        // flex: 1,
         marginTop: 10,
-        gap: 20,
+        flex: 1,
     },
     productItem: {
         flexDirection: 'row',
