@@ -4,32 +4,32 @@
     "slug": "solgates-seller",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/appIcon.png",
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/splashIcon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
-    }, 
+    },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "build": {
-      "preview": {
-        "distribution": "internal",
-        "android": {
-          "buildType": "apk"
-        }
-      }
-    },
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "LSApplicationQueriesSchemes": ["whatsapp", "instagram"]
-      }
+        "LSApplicationQueriesSchemes": [
+          "whatsapp",
+          "instagram",
+          "whatsapp",
+          "instagram"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.solgates.solgatesSeller"
     },
     "android": {
+      "icon": "./assets/images/appIcon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/foregroundImage.png",
         "backgroundColor": "#ffffff"
       },
       "intentFilters": [
@@ -38,10 +38,17 @@
           "data": {
             "scheme": "https"
           },
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
-      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
       "package": "com.solgates.solgatesSeller"
     },
     "web": {
