@@ -1,7 +1,7 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Platform, BackHandler, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Platform, BackHandler, Animated, Easing, RefreshControl } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { router, usePathname } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
 import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes } from "@/hooks/useProduct";
-
 import numeral from 'numeral';
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
@@ -41,7 +40,7 @@ export default function Dashboard() {
     const [user, setUser] = useState<User | null>(null);
     const [productsList, setProductsList] = useState<Product[]>([]);
     const [amount, setAmount] = useState('');
-    const { data: products, isFetching } = useProducts(user?.storeId, page);
+    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page);
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
@@ -331,6 +330,9 @@ export default function Dashboard() {
                     <SwipeListView
                         data={productsList}
                         keyExtractor={(item) => item.id.toString()}
+                        refreshControl={
+                            <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor="#EA580C" />
+                        }
                         renderItem={({ item, index }: { item: Product; index: number }) => {
                             const itemId = item.id.toString();
                             initializeAnimation(itemId);
