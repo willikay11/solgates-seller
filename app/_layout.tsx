@@ -1,11 +1,12 @@
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView, StatusBar } from 'react-native';
 import CustomToast from '@/components/ui/custom-toast';
+
 SplashScreen.preventAutoHideAsync();
 
 const toastConfig = {
@@ -21,9 +22,11 @@ export const unstable_settings = {
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
+
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
 
   useEffect(() => {
     if (loaded) {
@@ -37,7 +40,7 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>  
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <SafeAreaView style={{ flex: 1 }}>
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />

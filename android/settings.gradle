@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'solgates-seller'
+rootProject.name = 'Solgates Seller'
 
 dependencyResolutionManagement {
   versionCatalogs {

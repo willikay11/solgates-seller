@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "solgates-seller",
+    "name": "Solgates Seller",
     "slug": "solgates-seller",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/appIcon.png",
     "splash": {
-      "image": "./assets/images/splashIcon.png",
+      "image": "./assets/images/foregroundImage.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#EA580C"
     },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
@@ -30,7 +30,7 @@
       "icon": "./assets/images/appIcon.png",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/foregroundImage.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#EA580C"
       },
       "intentFilters": [
         {

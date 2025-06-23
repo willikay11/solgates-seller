@@ -11,6 +11,8 @@ import Input from '@/components/ui/input';
 import { router, usePathname } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
+import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes } from "@/hooks/useProduct";
+
 import numeral from 'numeral';
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
@@ -21,6 +23,14 @@ import Share from 'react-native-share'
 import { useLogout } from '@/hooks/useAuth';
 
 export default function Dashboard() {
+    const _ = useGetGenders();
+    const __ = useGetCategories(); 
+    const ___ = useGetBrands();
+    const ____ = useGetColours();
+    const _____ = useGetCategoryTypes();
+    const ______ = useGetSizes();
+    const _______ = useGetConditions();
+
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [withdrawVisible, setWithdrawVisible] = useState(false);
@@ -321,7 +331,6 @@ export default function Dashboard() {
                     <SwipeListView
                         data={productsList}
                         keyExtractor={(item) => item.id.toString()}
-                        disableLeftSwipe={true}
                         renderItem={({ item, index }: { item: Product; index: number }) => {
                             const itemId = item.id.toString();
                             initializeAnimation(itemId);
@@ -388,7 +397,7 @@ export default function Dashboard() {
                             );
                         }}
                         leftOpenValue={50}
-                        rightOpenValue={0}
+                        rightOpenValue={50}
                         onEndReached={() => {
                             if (hasMeta(products) && products.meta.currentPage < products.meta.lastPage) {
                                 setPage(products.meta.currentPage + 1);
