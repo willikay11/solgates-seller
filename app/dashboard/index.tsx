@@ -330,6 +330,7 @@ export default function Dashboard() {
                     <SwipeListView
                         data={productsList}
                         keyExtractor={(item) => item.id.toString()}
+                        disableLeftSwipe={true}
                         refreshControl={
                             <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor="#EA580C" />
                         }
@@ -393,7 +394,7 @@ export default function Dashboard() {
                                             deleteProduct(item.id)
                                         });
                                     }}>
-                                        <Icon name="delete-bin-line" size={32} color="red" />
+                                        <Icon name="shopping-cart-line" size={32} color="red" />
                                     </TouchableOpacity>
                                 </Animated.View>
                             );
