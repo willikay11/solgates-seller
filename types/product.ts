@@ -21,6 +21,20 @@ export interface AddProduct {
     sizeId: string;
 }
 
+export interface EditProduct {
+  name?: string;
+  price?: string;
+  quantity?: string;
+  categoryId?: string;
+  categoryTypeId?: string;
+  productConditionId?: string;
+  brandId?: string;
+  colours?: string[];
+  genders?: string[];
+  productUrls?: { url: string }[];
+  sizeId?: string;
+}
+
 export interface Product {
     id: string;
     name: string;

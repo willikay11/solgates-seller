@@ -5,10 +5,10 @@ import CategoryList from "./category-list";
 import Divider from "@/components/ui/divider";
 import ImagePicker from "@/components/ui/image-picker";
 import Input from "@/components/ui/input";
-import { useAddOrUpdateProduct, useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUploadImage } from "@/hooks/useProduct";
+import { useAddProduct, useUpdateProduct, useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUploadImage } from "@/hooks/useProduct";
 import Toast from "react-native-toast-message";
 import { useNavigation } from "expo-router";
-import { AddProduct, Product } from "@/types/product";
+import { AddProduct, EditProduct, Product } from "@/types/product";
 
 type ProductFormProps = {
     product?: Product;
@@ -22,7 +22,8 @@ export default function ProductForm({ product }: ProductFormProps) {
     const { data: categoryTypes, isFetching: isFetchingCategoryTypes } = useGetCategoryTypes();
     const { data: sizes, isFetching: isFetchingSizes } = useGetSizes();
     const [productUrls, setProductUrls] = useState<{ url: string }[]>(Array(3).fill({ url: '' }));
-    const { mutate: addProduct, isPending: isAddingProduct, isSuccess: isAddProductSuccess, isError: isAddProductError } = useAddOrUpdateProduct(product?.id);
+    const { mutate: addProduct, isPending: isAddingProduct, isSuccess: isAddProductSuccess, isError: isAddProductError } = useAddProduct();
+    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError } = useUpdateProduct();
     const { mutateAsync: uploadImage, isPending: isUploadingImage, isSuccess: isUploadImageSuccess, isError: isUploadImageError } = useUploadImage();
     const { data: conditions, isFetching: isFetchingConditions } = useGetConditions();
     const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -83,20 +84,61 @@ export default function ProductForm({ product }: ProductFormProps) {
             return;
         }
 
-        const uploadPromises = productUrls.filter((url) => url.url !== '').map((url) => {
-            return uploadImage({
-                uri: url.url,
-                type: 'image/jpeg',
-                name: url.url,
+        let uploadPromises: any;
+
+        if(product?.id && productUrls.length) {
+            const currentProductUrls = product.productImageUrls.map((image) => image.url)
+            productUrls.filter((productUrl) => !currentProductUrls.includes(productUrl.url)).map((url) => {
+                console.log('Here')
+                return uploadImage({
+                    uri: url.url,
+                    type: 'image/jpeg',
+                    name: url.url,
+                });
+            })
+        } else if(!product?.id) {
+            uploadPromises = productUrls.filter((url) => url.url !== '').map((url) => {
+                return uploadImage({
+                    uri: url.url,
+                    type: 'image/jpeg',
+                    name: url.url,
+                });
             });
-        });
+        }
+        let newProductUrls: { url: string }[]= []
 
-        const responses = await Promise.all(uploadPromises);
+        if(uploadPromises) {
+            const responses = await Promise.all(uploadPromises);
 
-        const newProductUrls = responses.map((response) => ({
-            url: response.secure_url,
-        }));
-        
+            newProductUrls = responses.map((response) => ({
+                url: response.secure_url,
+            }));
+        }
+
+        if(product?.id) {
+            if (!newProductUrls.length) {
+                newProductUrls = product.productImageUrls.map((image) => ({url: image.url}))
+            }
+            const data: EditProduct = {
+                name: productName,
+                price: price,
+                quantity: quantity,
+                colours: selectedColours,
+                genders: selectedGenders,
+                sizeId: selectedSize,
+                categoryId: selectedCategory,
+                productConditionId: selectedCondition,
+                categoryTypeId: selectedCategoryType,
+                productUrls: newProductUrls, 
+            }
+            if (selectedBrand) {
+                data.brandId = selectedBrand;
+            }
+    
+            updateProduct({ product: data, id: product.id });
+            return;
+        }
+
         const data: AddProduct = {
             name: productName,
             price: price,
@@ -126,7 +168,7 @@ export default function ProductForm({ product }: ProductFormProps) {
       };
 
     useEffect(() => {
-        if (isAddProductSuccess) {
+        if (isAddProductSuccess || isUpdateProductSuccess) {
             Toast.show({
                 type: 'success',
                 text1: 'Success',
@@ -134,14 +176,14 @@ export default function ProductForm({ product }: ProductFormProps) {
             });
             navigation.goBack();
         }
-        if (isAddProductError) {
+        if (isAddProductError || isUpdateProductError) {
             Toast.show({
                 type: 'error',
                 text1: 'Error',
                 text2: product?.id ? 'Product update failed' : 'Product addition failed',
             });
         }
-    }, [isAddProductSuccess, isAddProductError]);
+    }, [isAddProductSuccess, isAddProductError, isUpdateProductSuccess, isUpdateProductError]);
 
     useEffect(() => {
         if (product) {
@@ -257,9 +299,9 @@ export default function ProductForm({ product }: ProductFormProps) {
                 <Button 
                     onPress={() => handleSubmit()} 
                     style={{ paddingHorizontal: 50 }} 
-                    disabled={isAddingProduct || isUploadingImage} 
-                    loading={isAddingProduct || isUploadingImage}>
-                    {isUploadingImage ? 'Uploading images...' : isAddingProduct ? 'Saving...' : 'Save'}
+                    disabled={isAddingProduct || isUpdatingProduct || isUploadingImage} 
+                    loading={isAddingProduct || isUpdatingProduct || isUploadingImage}>
+                    {isUploadingImage ? 'Uploading images...' : isAddingProduct ? 'Saving...' : isUpdatingProduct ? 'Updating...' : 'Save'}
                 </Button>
             </View>
         </View>   

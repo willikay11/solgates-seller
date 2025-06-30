@@ -1,6 +1,6 @@
 import { parseSnakeToCamel } from "@/utils/parseSnakeToCamel";
 import { api } from "./api";
-import { AddProduct, Product } from "@/types/product";
+import { AddProduct, EditProduct, Product } from "@/types/product";
 import { Pagination } from "@/types/pagination";
 import { Brand } from "@/types/brand";
 import { Colour } from "@/types/colour";
@@ -57,7 +57,7 @@ export const productService = {
         return parseSnakeToCamel(response.data?.product);
     },
 
-    addOrUpdateProduct: async (product: AddProduct, id?: string) => {
+    addProduct: async (product: AddProduct) => {
         try {
             const userData = await SecureStore.getItemAsync('user');
 
@@ -100,25 +100,10 @@ export const productService = {
                   : ''
               );
 
-            const url = id ? `/product/${id}/update` : '/product/create';
-
-            const method = id ? 'patch' : 'post';
-
-            const response = await api[method](url, id ? {
-                name: product.name,
-                price: product.price,
-                quantity: product.quantity,
-                category_id: product.categoryId,
-                category_type_id: product.categoryTypeId,
-                brand_id: product.brandId,
-                product_condition_id: product.productConditionId,
-                size_id: product.sizeId,
-                colours: JSON.stringify(product.colours.map((colour: string) => ({ colour_id: colour }))),
-                genders: JSON.stringify(product.genders.map((gender: string) => ({ gender_id: gender }))),
-            } : formData, {
+            const response = await api.post('/product/create', formData, {
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': id ? 'application/json' : 'multipart/form-data',
+                    'Content-Type':'multipart/form-data',
                 }
             });
 
@@ -128,6 +113,41 @@ export const productService = {
             throw error;
         }
         
+    },
+
+    updateProduct: async(product: EditProduct, id: string) => {
+        try {
+            const userData = await SecureStore.getItemAsync('user');
+
+            const data: any = {}
+            Object.keys(product).forEach((key) => {
+                const typedKey = key as keyof typeof product;
+            
+                if (key === 'colours' && product?.colours) {
+                    data.colours = JSON.stringify(product.colours.map((colour: string) => ({ colour_id: colour })));
+                    return;
+                }
+            
+                if (key === 'genders' && product?.genders) {
+                    data.genders = JSON.stringify(product.genders.map((gender: string) => ({ gender_id: gender })));
+                    return;
+                }
+            
+                data[typedKey] = product[typedKey];
+            });
+
+            const response = await api.patch(`/product/${id}/update`,data, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': id ? 'application/json' : 'multipart/form-data',
+                }
+            });
+
+            return parseSnakeToCamel(response.data);
+        } catch(error: any) {
+            console.log("error =====> ", error.response);
+            throw error;
+        }
     },
 
     uploadImage: async (image: any, id?: string) => {

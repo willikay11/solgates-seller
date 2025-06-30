@@ -1,5 +1,5 @@
 import { productService } from "@/services/product";
-import { AddProduct } from "@/types/product";
+import { AddProduct, EditProduct } from "@/types/product";
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 
 const staleTime = 1000 * 60 * 60 * 12; // 12 hours
@@ -87,13 +87,23 @@ export const useGetProductById = (productId: string) => {
     });
 };
 
-export const useAddOrUpdateProduct = (id?:string) => {
+export const useUpdateProduct = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (product: AddProduct) => productService.addOrUpdateProduct(product, id),
+        mutationFn: ({product, id }: {product: EditProduct, id: string}) => productService.updateProduct(product, id),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            queryClient.invalidateQueries({ queryKey: ['product', variables.id] });
+        },
+    });
+}
+
+export const useAddProduct = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (product: AddProduct) => productService.addProduct(product),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['products'] });
-            queryClient.invalidateQueries({ queryKey: ['product', id] });
         },
     });
 }; 

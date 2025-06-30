@@ -11,7 +11,7 @@ import Input from '@/components/ui/input';
 import { router, usePathname } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
-import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes } from "@/hooks/useProduct";
+import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUpdateProduct } from "@/hooks/useProduct";
 import numeral from 'numeral';
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
@@ -44,9 +44,10 @@ export default function Dashboard() {
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
+    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError } = useUpdateProduct();
     const pathname = usePathname();
     const fadeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
-    const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+    const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
 
     const handleWithdraw = () => {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
@@ -146,6 +147,23 @@ export default function Dashboard() {
     }, [isDeleteSuccess, isDeleteError]);
 
     useEffect(() => {
+        setUpdatingItemId(null)
+        if (isUpdateProductSuccess) {
+            Toast.show({
+                type: 'success',
+                text1: 'Congratulations',
+                text2: `The product has marked as sold`,
+            });
+        } else if(isUpdateProductError) {
+            Toast.show({
+                type: 'error',
+                text1: 'Product sold failed',
+                text2: 'Please try again',
+            });
+        }
+    }, [isUpdateProductSuccess, isUpdateProductError])
+
+    useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
             // Only show logout dialog if we're on the dashboard screen
             if (pathname === '/dashboard') {
@@ -186,14 +204,14 @@ export default function Dashboard() {
 
     // Get the transform for folding animation
     const getFoldingTransform = (itemId: string, index: number) => {
-        if (!deletingItemId) return [{ translateY: 0 }];
+        if (!updatingItemId) return [{ translateY: 0 }];
         
-        const deletingIndex = productsList.findIndex(item => item.id.toString() === deletingItemId);
+        const deletingIndex = productsList.findIndex(item => item.id.toString() === updatingItemId);
         if (deletingIndex === -1 || index <= deletingIndex) return [{ translateY: 0 }];
         
         // Items below the deleted item should move up
         return [{
-            translateY: fadeAnimations[deletingItemId].interpolate({
+            translateY: fadeAnimations[updatingItemId].interpolate({
                 inputRange: [0, 1],
                 outputRange: [-90, 0] // Move up by the height of one item (90px)
             })
@@ -356,7 +374,7 @@ export default function Dashboard() {
                                             <TouchableOpacity onPress={() => {
                                                     setMenuVisible(true)
                                                     setSelectedProduct(item)
-                                                }}>
+                                            }}>
                                                 <Icon name="more-2-fill" size={20} color="#EA580C" />
                                             </TouchableOpacity>
                                         </View>
@@ -370,31 +388,32 @@ export default function Dashboard() {
                                 <Animated.View style={[
                                     styles.hiddenContainer,
                                     { 
-                                        opacity: deletingItemId === itemId ? 0 : 1,
+                                        opacity: updatingItemId === itemId ? 0 : 1,
                                         transform: getFoldingTransform(itemId, index)
                                     }
                                 ]}>
                                     <TouchableOpacity onPress={() => {
                                         const itemId = item.id.toString();
-                                        setDeletingItemId(itemId);
-                                        
-                                        // Animate with easeOut effect
-                                        Animated.timing(fadeAnimations[itemId], {
-                                            toValue: 0,
-                                            duration: 400,
-                                            useNativeDriver: true,
-                                            easing: Easing.out(Easing.cubic),
-                                        }).start(() => {
-                                            // After animation completes, update the list
-                                            const newList = productsList.filter((i: Product) => i.id !== item.id);
-                                            setProductsList(newList);
-                                            // Clean up the animation value and reset deleting state
-                                            cleanupAnimation(itemId);
-                                            setDeletingItemId(null);
-                                            deleteProduct(item.id)
-                                        });
+                                        setUpdatingItemId(itemId);
+                                        if (item.quantity - 1 === 0) {
+                                            // Animate with easeOut effect
+                                            Animated.timing(fadeAnimations[itemId], {
+                                                toValue: 0,
+                                                duration: 400,
+                                                useNativeDriver: true,
+                                                easing: Easing.out(Easing.cubic),
+                                            }).start(() => {
+                                                // After animation completes, update the list
+                                                const newList = productsList.filter((i: Product) => i.id !== item.id);
+                                                setProductsList(newList);
+                                                // Clean up the animation value and reset deleting state
+                                                cleanupAnimation(itemId);
+                                                setUpdatingItemId(null);
+                                            });
+                                        }
+                                        updateProduct({ product: {quantity: `${item.quantity - 1}`}, id: item.id })
                                     }}>
-                                        <Icon name="shopping-cart-line" size={32} color="red" />
+                                         <Icon name="shopping-cart-line" size={32} color="red" />
                                     </TouchableOpacity>
                                 </Animated.View>
                             );
