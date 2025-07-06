@@ -11,6 +11,7 @@ import Input from '@/components/ui/input';
 import { router, usePathname } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
+import * as Sharing from 'expo-sharing';
 import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUpdateProduct } from "@/hooks/useProduct";
 import numeral from 'numeral';
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
@@ -80,11 +81,11 @@ export default function Dashboard() {
               await Share.open(shareOptions);
           } else {
             // Step 2b: iOS — Share only the image (text won't be shown)
-            // await Sharing.shareAsync(downloadResult.uri, {
-            //   dialogTitle: title,
-            //   UTI: 'public.jpeg',
-            //   mimeType: 'image/jpeg',
-            // });
+            await Sharing.shareAsync(uri, {
+              dialogTitle: title,
+              UTI: 'public.jpeg',
+              mimeType: 'image/jpeg',
+            });
           }
         } catch (error: any) {
           Toast.show({

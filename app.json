@@ -20,11 +20,15 @@
           "whatsapp",
           "instagram",
           "whatsapp",
+          "instagram",
+          "whatsapp",
+          "instagram",
+          "whatsapp",
           "instagram"
         ],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "bundleIdentifier": "com.solgates.solgatesSeller"
+      "bundleIdentifier": "com.solgates.solgatesSeller.preview"
     },
     "android": {
       "icon": "./assets/images/appIcon.png",
@@ -47,9 +51,12 @@
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.solgates.solgatesSeller"
+      "package": "com.solgates.solgatesSeller.preview"
     },
     "web": {
       "bundler": "metro",
@@ -78,6 +85,10 @@
       "API_URL": "https://api.staging.solgates.com/api/v1",
       "TEST_SELLER_ACCOUNT_ID": "9baa00b2-06d8-4361-b97e-1a37748124ec"
     },
-    "owner": "willikay11"
+    "owner": "willikay11",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/46128557-00c6-4042-8823-8f7075c6b713"
+    }
   }
 }
