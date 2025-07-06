@@ -18,8 +18,8 @@ api.interceptors.request.use(async (config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response.status === 401) {
-      SecureStore.deleteItemAsync('accessToken');
+    if (error?.response?.status === 401) {
+      SecureStore.deleteItemAsync('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);

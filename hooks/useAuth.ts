@@ -1,6 +1,6 @@
 import { authService } from '@/services/authService';
 import * as SecureStore from 'expo-secure-store';
-import { User } from '@/types/user';  
+import { Refresh, User } from '@/types/user';  
 import { useMutation } from '@tanstack/react-query';
 import moment from 'moment'
 
@@ -22,9 +22,29 @@ export const useLogin = () => useMutation({
       storeName: data.storeName,
       storeId: data.storeId,
       accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
       displayImageUrl: data.displayImageUrl,
     }));
   },
+});
+
+export const useRefreshToken = () => useMutation({
+  mutationFn: ({ refreshToken }: { refreshToken: string }) => authService.refreshToken(refreshToken),
+  onSuccess: async (data: Refresh) => {
+    const newDate = moment().add(data.expiresIn, 'seconds').utc();
+
+    const userData = await SecureStore.getItemAsync('user');
+    if (userData) {
+        const currentUser = JSON.parse(userData)
+
+        SecureStore.setItemAsync('user', JSON.stringify({
+          ...currentUser,
+          expiresAt: newDate.format('YYYY-MM-DD HH:mm:ss'),
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        }))
+    }
+  }
 });
 
 export const useLogout = () => useMutation({

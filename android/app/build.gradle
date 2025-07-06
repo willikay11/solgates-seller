@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.solgates.solgatesSeller'
+    namespace 'com.solgates.solgatesSeller.preview'
     defaultConfig {
-        applicationId 'com.solgates.solgatesSeller'
+        applicationId 'com.solgates.solgatesSeller.preview'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -5,11 +5,6 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/appIcon.png",
-    "splash": {
-      "image": "./assets/images/foregroundImage.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#EA580C"
-    },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

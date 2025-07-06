@@ -1,6 +1,6 @@
 import { parseSnakeToCamel } from "@/utils/parseSnakeToCamel";
 import { api } from "./api";
-import { User } from "@/types/user";
+import { Refresh, User } from "@/types/user";
 
 export const authService = {
   login: async (email: string, password: string) => {
@@ -20,6 +20,28 @@ export const authService = {
       await api.get('/logout');
     } catch (error) {
       throw new Error('Logout failed');
+    }
+  },
+  refreshToken: async(refreshToken: string) => {
+    try {
+      const formData = new FormData();
+      formData.append('refresh_token', refreshToken);
+
+      const response = await api.post('/refresh-token', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      const refresh: Refresh = {
+        accessToken: response?.data?.data?.meta?.access_token,
+        refreshToken: response?.data?.data?.meta?.refresh_token,
+        expiresIn: response?.data?.data?.meta?.expires_in,
+      }
+
+      return refresh;
+    } catch (error) {
+      console.log(error)
+      throw new Error('refresh failed');
     }
   },
   sendPasswordResetEmail: async (email: string) => {

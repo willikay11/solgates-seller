@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>myapp</string>
-          <string>com.solgates.solgatesSeller</string>
+          <string>com.solgates.solgatesSeller.preview</string>
         </array>
       </dict>
       <dict>
@@ -44,6 +44,10 @@
     <false/>
     <key>LSApplicationQueriesSchemes</key>
     <array>
+      <string>whatsapp</string>
+      <string>instagram</string>
+      <string>whatsapp</string>
+      <string>instagram</string>
       <string>whatsapp</string>
       <string>instagram</string>
       <string>whatsapp</string>

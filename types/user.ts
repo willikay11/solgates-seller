@@ -21,7 +21,14 @@ export interface User {
     "accessToken": string,
     "tokenType": string,
     "expiresIn": number,
+    expiresAt?: string,
     "refreshToken": string
+}
+
+export interface Refresh {
+    accessToken: string;
+    refreshToken: string;
+    expiresIn: number;
 }
 
 export type AccountType = 'SELLER' | 'BUYER';
