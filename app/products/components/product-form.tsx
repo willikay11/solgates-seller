@@ -89,7 +89,6 @@ export default function ProductForm({ product }: ProductFormProps) {
         if(product?.id && productUrls.length) {
             const currentProductUrls = product.productImageUrls.map((image) => image.url)
             productUrls.filter((productUrl) => !currentProductUrls.includes(productUrl.url)).map((url) => {
-                console.log('Here')
                 return uploadImage({
                     uri: url.url,
                     type: 'image/jpeg',
@@ -111,7 +110,7 @@ export default function ProductForm({ product }: ProductFormProps) {
             const responses = await Promise.all(uploadPromises);
 
             newProductUrls = responses.map((response) => ({
-                url: response.secure_url,
+                url: response.croppedUrl,
             }));
         }
 

@@ -50,11 +50,9 @@ export default function AuthIndex() {
     }
   }, [isSuccess, isError])
 
-  
-
   if (!ready) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: ' #EA580C' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#EA580C' }}>
         <StatusBar backgroundColor="#EA580C" barStyle="light-content" />
         <Image 
             source={require('@/assets/images/foregroundImage.png')} 

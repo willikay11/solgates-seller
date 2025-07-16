@@ -149,7 +149,6 @@ export const productService = {
             throw error;
         }
     },
-
     uploadImage: async (image: any, id?: string) => {
         const formData = new FormData();
         formData.append('file', image);
@@ -160,14 +159,24 @@ export const productService = {
                 body: formData,
             });
             const data = await response.json();
+
+            // Construct cropped URL (e.g., 400x400 center crop)
+            const croppedUrl = `https://res.cloudinary.com/dp1buffig/image/upload/c_fill,w_400,h_400,g_auto/${data.public_id}.${data.format}`;
+            
             if (id) {
-                productService.addProductImage(id, data.secure_url);
+                productService.addProductImage(id, croppedUrl);
             }
-            return data;
+            return {
+                ...data,
+                croppedUrl
+            };
         } catch (error) {
             console.log("error =====> ", error);
             throw error;
         }
+    },
+    formatImage: async() => {
+
     },
     deleteProduct: async (productId: string) => {
         const response = await api.delete(`/product/${productId}/delete`);
