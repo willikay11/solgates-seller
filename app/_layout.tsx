@@ -1,34 +1,53 @@
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+// app/_layout.tsx
+import { Slot } from 'expo-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaView, StatusBar } from 'react-native';
+import Toast from 'react-native-toast-message';
+import CustomToast from '@/components/ui/custom-toast';
+import { useEffect, useState } from 'react';
 
-SplashScreen.preventAutoHideAsync();
-
-// export const unstable_settings = {
-//   initialRouteName: "(auth)/index",
-// };
-
-export default function RootLayout() {
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      networkMode: 'offlineFirst'
+    },
+    mutations: {
+      networkMode: 'offlineFirst'
     }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
   }
+});
+
+const toastConfig = {
+  success: (props: any) => <CustomToast {...props} />,
+  error: (props: any) => <CustomToast {...props} />,
+};
+
+export default function AppLayout() {
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const res = await fetch('https://www.google.com', { method: 'HEAD' });
+        if (!res.ok) throw new Error('Bad response');
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'No Internet Connection',
+        });
+      }
+    };
+  
+    const interval = setInterval(checkConnection, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <Stack>
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="dashboard/index" options={{ headerShown: false }} />
-      <Stack.Screen name="products/add" options={{ headerShown: false }} />
-    </Stack>
+    <QueryClientProvider client={queryClient}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <SafeAreaView style={{ flex: 1 }}>
+        <Slot />
+        <Toast config={toastConfig} />
+      </SafeAreaView>
+    </QueryClientProvider>
   );
 }

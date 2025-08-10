@@ -1,26 +1,46 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, Alert, Linking } from 'react-native';
 import Button from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useLogin } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
 import Input from '@/components/ui/input';
 import Icon from "react-native-remix-icon";
+import Toast from 'react-native-toast-message';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { mutate: login, isSuccess, isPending: isSigningIn, isError } = useLogin();
   const router = useRouter();
 
   const handleLogin = async () => {
-    try {
-      await login(email, password);
-      router.push('/dashboard');
-    } catch (error) {
-      console.log(error);
-      alert('Login failed');
+    await login({ email, password });
+  };
+
+  const handleForgotPassword = async () => {
+    const url = 'https://staging.solgates.com/';
+
+    // Check if the URL can be opened
+    const supported = await Linking.canOpenURL(url);
+
+    if (supported) {
+      await Linking.openURL(url);
+    } else {
+      Alert.alert(`Don't know how to open this URL: ${url}`);
     }
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      router.push('/dashboard');
+    } else if (isError) {
+      Toast.show({
+        type: 'error',
+        text1: 'Login failed',
+        text2: 'Please check your email and password'
+      });
+    }
+  }, [isSuccess, isError]);
 
   return (
     <View style={styles.container}>
@@ -47,9 +67,11 @@ export default function Login() {
         prefixComponent={<Icon name="key-2-line" size={18} color="#3B82F6" />}
       />
       <View style={styles.buttonContainer}>
-        <Button variant="text" onPress={() => router.push('/auth/forgot-password')}>Forgot Password?</Button>
+        <Button variant="text" onPress={() => handleForgotPassword()}>Forgot Password?</Button>
       </View>
-      <Button onPress={handleLogin} block>Sign In</Button>
+      <Button onPress={handleLogin} block loading={isSigningIn} disabled={isSigningIn}>
+        {isSigningIn ? 'Signing In...' : 'Sign In'}
+      </Button>
     </View>
   );
 }

@@ -1,36 +1,57 @@
 import { authService } from '@/services/authService';
-import { useState } from 'react';
-import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import { Refresh, User } from '@/types/user';  
+import { useMutation } from '@tanstack/react-query';
+import moment from 'moment'
 
-export const useAuth = () => {
-  const [user, setUser] = useState<any>(null);
+export const useLogin = () => useMutation({
+  mutationFn: ({ email, password }: { email: string; password: string }) => authService.login(email, password),
+  onSuccess: (data: User) => {
+    const newDate = moment().add(data.expiresIn, 'seconds').utc();
 
-  const login = async (email: string, password: string) => {
-    console.log('https://api.staging.solgates.com/api/v1/login');
-    // const response = await axios.post('https://api.staging.solgates.com/api/v1/login', {
-    //   email,
-    //   password
-    // });
-    // console.log(response);
-    // setUser(response.data);
-    fetch('https://api.staging.solgates.com/api/v1/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    })
-      .then((response) => {
-        console.log(response);
-        return response.json();
-      })
-      .then((data) => setUser(data));
-  };
+    SecureStore.setItemAsync('user', JSON.stringify({
+      id: data.id,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      accountType: data.accountType,
+      phoneNumber: data.phoneNumber,
+      email: data.email,
+      phoneIsVerified: data.phoneIsVerified,
+      emailIsVerified: data.emailIsVerified,
+      expiresAt: newDate.format('YYYY-MM-DD HH:mm:ss'),
+      storeName: data.storeName,
+      storeId: data.storeId,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      displayImageUrl: data.displayImageUrl,
+    }));
+  },
+});
 
-  const sendPasswordResetEmail = async (email: string) => {
-    await authService.sendPasswordResetEmail(email);
-  };
+export const useRefreshToken = () => useMutation({
+  mutationFn: ({ refreshToken }: { refreshToken: string }) => authService.refreshToken(refreshToken),
+  onSuccess: async (data: Refresh) => {
+    const newDate = moment().add(data.expiresIn, 'seconds').utc();
 
-  return {
-    user,
-    login,
-    sendPasswordResetEmail,
-  };
-};
+    const userData = await SecureStore.getItemAsync('user');
+    if (userData) {
+        const currentUser = JSON.parse(userData)
+
+        SecureStore.setItemAsync('user', JSON.stringify({
+          ...currentUser,
+          expiresAt: newDate.format('YYYY-MM-DD HH:mm:ss'),
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        }))
+    }
+  }
+});
+
+export const useLogout = () => useMutation({
+  mutationFn: () => authService.logout(),
+  onSuccess: () => {
+    SecureStore.deleteItemAsync('user');
+  },
+});
+
+
