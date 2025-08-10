@@ -59,7 +59,9 @@
     "react-native-swipe-list-view": "^3.2.9",
     "react-native-toast-message": "^2.2.1",
     "react-native-web": "~0.19.13",
-    "react-native-webview": "13.12.5"
+    "react-native-webview": "13.12.5",
+    "@react-native-community/netinfo": "11.4.1",
+    "expo-network": "~7.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

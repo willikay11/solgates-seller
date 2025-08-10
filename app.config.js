@@ -36,6 +36,12 @@ module.exports = function (config) {
 
     console.log(`Building ${getAppId()}...`);
 
+    let apiUrl = "https://api.solgates.com/api/v1";
+
+    if (IS_PREVIEW || IS_DEV) {
+      apiUrl = 'https://api.staging.solgates.com/api/v1'
+    }
+
     return {
         expo: {
             "name": getName(),
@@ -115,7 +121,7 @@ module.exports = function (config) {
                 "eas": {
                   "projectId": EAS_PROJECT_ID
                 },
-                "API_URL": "https://api.staging.solgates.com/api/v1",
+                "API_URL": apiUrl,
               },
               "owner": EAS_APP_OWNER,
               "runtimeVersion": "1.0.0",

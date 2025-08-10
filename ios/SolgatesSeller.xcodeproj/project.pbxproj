@@ -370,8 +370,8 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.solgates.solgatesSeller.preview;
-				PRODUCT_NAME = SolgatesSeller;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.solgates.solgatesSeller.app";
+				PRODUCT_NAME = "SolgatesSeller";
 				SWIFT_OBJC_BRIDGING_HEADER = "SolgatesSeller/SolgatesSeller-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -398,8 +398,8 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.solgates.solgatesSeller.preview;
-				PRODUCT_NAME = SolgatesSeller;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.solgates.solgatesSeller.app";
+				PRODUCT_NAME = "SolgatesSeller";
 				SWIFT_OBJC_BRIDGING_HEADER = "SolgatesSeller/SolgatesSeller-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

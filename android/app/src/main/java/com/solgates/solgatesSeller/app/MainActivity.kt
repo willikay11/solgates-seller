@@ -1,4 +1,4 @@
-package com.solgates.solgatesSeller.preview
+package com.solgates.solgatesSeller.app
 
 import android.os.Build
 import android.os.Bundle

@@ -30,11 +30,11 @@
         <data android:scheme="myapp"/>
         <data android:scheme="com.solgates.solgatesSeller.preview"/>
         <data android:scheme="exp+solgates-seller"/>
+        <data android:scheme="com.solgates.solgatesSeller.app"/>
       </intent-filter>
       <intent-filter data-generated="true">
         <action android:name="android.intent.action.VIEW"/>
         <data android:scheme="https"/>
-        <data android:scheme="exp+solgates-seller"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
