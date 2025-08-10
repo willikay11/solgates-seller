@@ -304,8 +304,8 @@ export default function Dashboard() {
                         </View>
                     </View>
                 </View>
-                <Divider width={12} height={2} />
-                <View style={styles.walletContainer}>
+                {/* <Divider width={12} height={2} /> */}
+                {/* <View style={styles.walletContainer}>
                     <Text style={styles.contentHeaderText}>Wallet Balance</Text>
                     <View style={styles.dashboardWalletBalanceContainer}>
                         {
@@ -319,7 +319,7 @@ export default function Dashboard() {
                             {isWalletAmountVisible ? <Icon name="eye-line" size={20} color="#1F2937" /> : <Icon name="eye-close-line" size={20} color="#1F2937" />}
                         </TouchableOpacity>
                     </View>
-                </View>
+                </View> */}
                 <View style={styles.actionContainer}>
                     <Button variant="primary" onPress={() => router.push('/products/add')} style={styles.primaryButton}>
                         <View style={styles.buttonContent}>
@@ -327,12 +327,12 @@ export default function Dashboard() {
                             <Text style={styles.buttonText}>New Product</Text>
                         </View>
                     </Button>
-                    <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
+                    {/* <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
                         <View style={styles.buttonContent}>
                             <Icon name="arrow-left-down-line" size={20} color="#FFFFFF" />
                             <Text style={styles.buttonText}>Withdraw Cash</Text>
                         </View>
-                    </Button>
+                    </Button> */}
                     <Button variant="icon" onPress={() => shareProduct({
                         title: `View my shop ${user?.storeName} on solgates`,
                         message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,

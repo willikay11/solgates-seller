@@ -51,7 +51,11 @@ const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children,
       Keyboard.dismiss();
       onPress();
     }} disabled={disabled}>
+      {typeof children === 'string' || typeof children === 'number' ? (
         <Text style={[styles.text, textStyle]}>{children}</Text>
+      ) : (
+        children
+      )}
     </TouchableOpacity>
   );
 };
