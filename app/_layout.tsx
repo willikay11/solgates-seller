@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SafeAreaView, StatusBar } from 'react-native';
 import Toast from 'react-native-toast-message';
 import CustomToast from '@/components/ui/custom-toast';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 const queryClient = new QueryClient({
   defaultOptions: {
