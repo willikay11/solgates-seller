@@ -34,11 +34,9 @@ const getAppId = () => {
 module.exports = function (config) {
     const VERSION = pkg.version;
 
-    console.log(`Building ${getAppId()}...`);
-
     let apiUrl = "https://api.solgates.com/api/v1";
 
-    if (IS_PREVIEW || IS_DEV) {
+    if (IS_DEV || IS_PREVIEW) {
       apiUrl = 'https://api.staging.solgates.com/api/v1'
     }
 
@@ -109,7 +107,8 @@ module.exports = function (config) {
                   {
                     "photosPermission": "The app accesses your photos to let you share them with your friends."
                   }
-                ]
+                ],
+                "./plugins/withAppName"
               ],
               "experiments": {
                 "typedRoutes": true
