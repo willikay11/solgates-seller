@@ -43,7 +43,7 @@ export default function Dashboard() {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [amount, setAmount] = useState('');
-    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page, debouncedSearchQuery);
+    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page);
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
@@ -366,6 +366,9 @@ export default function Dashboard() {
                         style={{ backgroundColor: "#F9FAFB" }}
                         prefixComponent={<Icon name="search-line" size={20} color="#9CA3AF" />}
                         loading={searchQuery !== debouncedSearchQuery || (isFetching && debouncedSearchQuery !== '')}
+                        suffixComponent={debouncedSearchQuery ? (
+                            <Icon name="close-line" size={20} color="#9CA3AF" onPress={() => setSearchQuery('')} />
+                        ) : null}
                     />
                 </View>
                 <View style={styles.productListContainer}>

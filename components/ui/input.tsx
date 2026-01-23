@@ -12,6 +12,7 @@ type InputProps = {
   error?: string;
   style?: ViewStyle;
   loading?: boolean;
+  suffixComponent?: React.ReactNode;
 };
 
 const Input: React.FC<InputProps> = ({
@@ -24,6 +25,7 @@ const Input: React.FC<InputProps> = ({
   error,
   style,
   loading = false,
+  suffixComponent,
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -58,6 +60,7 @@ const Input: React.FC<InputProps> = ({
             {isPasswordVisible ? <Icon name="eye-line" size={18} color="gray" /> : <Icon name="eye-close-line" size={18} color="gray" />}
           </TouchableOpacity>
         )}
+        {suffixComponent && <View style={styles.suffix}>{suffixComponent}</View>}
       </View>
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
@@ -93,6 +96,15 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     paddingHorizontal: 10,
+  },
+  suffix: {
+    marginLeft: 10,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 5,
+    height: 35,
+    width: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   error: {
     color: '#EF4444',
