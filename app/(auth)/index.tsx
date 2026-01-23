@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import Input from '@/components/ui/input';
 import Icon from "react-native-remix-icon";
 import Toast from 'react-native-toast-message';
+import Constants from 'expo-constants';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -18,7 +19,7 @@ export default function Login() {
   };
 
   const handleForgotPassword = async () => {
-    const url = 'https://staging.solgates.com/';
+    const url = Constants.expoConfig?.extra?.FRONTEND_URL;
 
     // Check if the URL can be opened
     const supported = await Linking.canOpenURL(url);

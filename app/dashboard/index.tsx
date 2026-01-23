@@ -22,6 +22,7 @@ import * as FileSystem from 'expo-file-system';
 import Share from 'react-native-share'
 import { useLogout } from '@/hooks/useAuth';
 import { LinearGradient } from 'expo-linear-gradient';
+import Constants from 'expo-constants';
 
 export default function Dashboard() {
     const _ = useGetGenders();
@@ -249,7 +250,7 @@ export default function Dashboard() {
                         setMenuVisible(false);
                         shareProduct({ 
                             title: `${selectedProduct?.name} - ${selectedProduct?.size.name} on solgates`,
-                            message: `Buy ${selectedProduct?.name} | ${selectedProduct?.genders.map(gender => gender.name).join(', ')} | size: ${selectedProduct?.size.name} on solgates, tap https://staging.solgates.com/product/${selectedProduct?.id}`,
+                            message: `Buy ${selectedProduct?.name} | ${selectedProduct?.genders.map(gender => gender.name).join(', ')} | size: ${selectedProduct?.size.name} on solgates, tap ${Constants.expoConfig?.extra?.FRONTEND_URL}/product/${selectedProduct?.id}`,
                             imageUrl: selectedProduct?.productImageUrls[0].url ?? '' });
                     }} disabled={isSharing}>
                         {isSharing ? (
@@ -369,7 +370,7 @@ export default function Dashboard() {
                     </Button>
                     <Button variant="icon" onPress={() => shareProduct({
                         title: `View my shop ${user?.storeName} on solgates`,
-                        message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,
+                        message: `View my shop ${user?.storeName} on solgates, tap ${Constants.expoConfig?.extra?.FRONTEND_URL}/collection?store=${user?.storeName}`,
                         imageUrl: user?.displayImageUrl ?? ''
                     })} style={styles.shareIconButton} disabled={isSharing}>
                         {isSharing ? (

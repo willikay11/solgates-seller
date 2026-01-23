@@ -1,4 +1,4 @@
-package com.solgates.solgatesSeller.app
+package com.solgates.solgatesSeller.dev
 
 import android.app.Application
 import android.content.res.Configuration
