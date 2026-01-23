@@ -326,7 +326,9 @@ export default function Dashboard() {
                             isWalletAmountVisible ? (
                                 <Text style={styles.walletBalanceText}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
                             ) : (
-                                <Text style={styles.walletBalanceText}>********</Text>
+                                <View style={styles.blurContainer}>
+                                    <Text style={[styles.walletBalanceText, styles.blurredText]}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
+                                </View>
                             )
                         }
                         <TouchableOpacity onPress={() => setIsWalletAmountVisible(!isWalletAmountVisible)}>
@@ -421,7 +423,7 @@ export default function Dashboard() {
                                                     setMenuVisible(true)
                                                     setSelectedProduct(item)
                                             }}>
-                                                <Icon name="more-2-fill" size={20} color="#EA580C" />
+                                                <Icon name="more-2-fill" size={24} color="#EA580C" />
                                             </TouchableOpacity>
                                         </View>
                                     </View>
@@ -535,9 +537,11 @@ const styles = StyleSheet.create({
     actionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 10,
     },
     primaryButton: {
-        marginRight: 10,
+        flex: 1,
+        minWidth: 100,
         height: 50,
         borderRadius: 25,
         overflow: 'hidden',
@@ -551,24 +555,27 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     gradientButton: {
+        flex: 1,
         height: 50,
         borderRadius: 25,
-        paddingHorizontal: 24,
+        paddingHorizontal: 12,
         justifyContent: 'center',
         alignItems: 'center',
     },
     secondaryButton: {
+        flex: 1,
+        minWidth: 120,
         height: 50,
         borderRadius: 25,
         backgroundColor: '#5B8DEF',
-        paddingHorizontal: 24,
+        paddingHorizontal: 12,
     },
     shareIconButton: {
-        marginLeft: 10,
         backgroundColor: '#5B8DEF',
         width: 50,
         height: 50,
         borderRadius: 25,
+        flexShrink: 0,
     },
     iconButton: {
         marginLeft: 5,
@@ -582,7 +589,8 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#FFFFFF'
+        color: '#FFFFFF',
+        numberOfLines: 1,
     },
     productContainer: {
         padding: 20,
@@ -590,7 +598,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     productHeaderText: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '800',
         color: '#1F2937'
     },
@@ -619,14 +627,16 @@ const styles = StyleSheet.create({
         flex: 1
     },
     productItemText: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '600',
-        color: '#1F2937'
+        color: '#1F2937',
+        lineHeight: 20
     },
     productItemTextDescription: {
         fontSize: 12,
         fontWeight: '500',
-        color: '#6B7280'
+        color: '#6B7280',
+        lineHeight: 20
     },
     productImage: {
         width: 80,
@@ -643,10 +653,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 5,
-        marginBottom: 10
+        marginBottom: 12
     },
     modalItemText: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: 'normal',
         color: '#1F2937'
     },
@@ -676,6 +686,19 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: 10
+    },
+    blurContainer: {
+        borderRadius: 8,
+        overflow: 'hidden',
+        // paddingHorizontal: 8,
+        // paddingVertical: 4,
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    },
+    blurredText: {
+        color: 'transparent',
+        textShadowColor: 'rgba(31, 41, 55, 0.1)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 15,
     },
     walletBalanceContainer: {
         flexDirection: 'row',

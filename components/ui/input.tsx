@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 8,
-    fontSize: 12,
+    fontSize: 14,
     color: '#1F2937',
   },
   iconContainer: {
