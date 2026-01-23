@@ -47,8 +47,12 @@ export const productService = {
         return parseSnakeToCamel(response.data?.product_conditions);
     },
 
-    getProducts: async (storeId?: string, page: number = 1): Promise<Pagination<Product>> => {
-        const response = await api.get(`/product/list?filter[store_id]=${storeId}&page=${page}`);
+    getProducts: async (storeId?: string, page: number = 1, searchQuery?: string): Promise<Pagination<Product>> => {
+        let url = `/product/list?filter[store_id]=${storeId}&page=${page}`;
+        if (searchQuery && searchQuery.trim() !== '') {
+            url += `&filter[name]=${encodeURIComponent(searchQuery)}`;
+        }
+        const response = await api.get(url);
         return parseSnakeToCamel(response.data);
     },
 

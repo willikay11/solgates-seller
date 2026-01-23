@@ -40,8 +40,10 @@ export default function Dashboard() {
     const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
     const [productsList, setProductsList] = useState<Product[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [amount, setAmount] = useState('');
-    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page);
+    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page, debouncedSearchQuery);
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
@@ -220,8 +222,19 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        setProductsList(products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? []);
+        const newProductsList = products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? [];
+        setProductsList(newProductsList);
     }, [products])
+
+    // Debounce search query
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+            setPage(1); // Reset to first page on new search
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery])
     
     return (
         <View style={styles.scrollContainer}>
@@ -345,6 +358,16 @@ export default function Dashboard() {
                 <Divider width="100%" height={1} color="#F3F4F6" />
                 <View style={styles.productContainer}>
                 <Text style={styles.productHeaderText}>Your Stock ({productsList.length} Products)</Text>
+                <View style={styles.searchContainer}>
+                    <Input 
+                        placeholder="Search products..." 
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        style={{ backgroundColor: "#F9FAFB" }}
+                        prefixComponent={<Icon name="search-line" size={20} color="#9CA3AF" />}
+                        loading={searchQuery !== debouncedSearchQuery || (isFetching && debouncedSearchQuery !== '')}
+                    />
+                </View>
                 <View style={styles.productListContainer}>
                     <SwipeListView
                         data={productsList}
@@ -522,6 +545,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '800',
         color: '#1F2937'
+    },
+    searchContainer: {
+        marginTop: 15,
+        marginBottom: 10,
     },
     productListContainer: {
         marginTop: 10,
