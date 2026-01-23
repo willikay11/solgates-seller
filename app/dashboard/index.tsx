@@ -52,6 +52,7 @@ export default function Dashboard() {
     const pathname = usePathname();
     const fadeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+    const [isSharing, setIsSharing] = useState(false);
 
     const handleWithdraw = () => {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
@@ -66,6 +67,7 @@ export default function Dashboard() {
         imageUrl: string;
         title: string;
       }) => {
+        setIsSharing(true);
         try {
           // Step 1: Download image to local cache
           const localUri = FileSystem.cacheDirectory + 'shared-image.jpg';
@@ -96,6 +98,8 @@ export default function Dashboard() {
             text1: 'Error',
             text2: error?.message ?? 'An error occurred',
           });
+        } finally {
+          setIsSharing(false);
         }
       };
 
@@ -247,9 +251,13 @@ export default function Dashboard() {
                             title: `${selectedProduct?.name} - ${selectedProduct?.size.name} on solgates`,
                             message: `Buy ${selectedProduct?.name} | ${selectedProduct?.genders.map(gender => gender.name).join(', ')} | size: ${selectedProduct?.size.name} on solgates, tap https://staging.solgates.com/product/${selectedProduct?.id}`,
                             imageUrl: selectedProduct?.productImageUrls[0].url ?? '' });
-                    }}>
-                        <Icon name="share-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Share Product</Text>
+                    }} disabled={isSharing}>
+                        {isSharing ? (
+                            <ActivityIndicator size="small" color="#1F2937" />
+                        ) : (
+                            <Icon name="share-line" size={14} color="#1F2937" />
+                        )}
+                        <Text style={styles.modalItemText}>{isSharing ? 'Sharing...' : 'Share Product'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem}>
                         <Icon name="file-copy-line" size={14} color="#1F2937" />
@@ -360,8 +368,12 @@ export default function Dashboard() {
                         title: `View my shop ${user?.storeName} on solgates`,
                         message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,
                         imageUrl: user?.displayImageUrl ?? ''
-                    })} style={styles.shareIconButton}>
-                        <Icon name="share-line" size={18} color="#ffffff" />
+                    })} style={styles.shareIconButton} disabled={isSharing}>
+                        {isSharing ? (
+                            <ActivityIndicator size="small" color="#ffffff" />
+                        ) : (
+                            <Icon name="share-line" size={18} color="#ffffff" />
+                        )}
                     </Button>
                 </View>
                 </View>
@@ -385,7 +397,7 @@ export default function Dashboard() {
                     {productsList.length === 0 && !isFetching ? (
                         <View style={styles.emptyStateContainer}>
                             <View style={styles.emptyStateIconContainer}>
-                                <Icon name="search-line" size={80} color="#EA580C" />
+                                <Icon name="search-line" size={60} color="#EA580C" />
                             </View>
                             <Text style={styles.emptyStateText}>No products found</Text>
                             {debouncedSearchQuery && (
@@ -590,7 +602,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#FFFFFF',
-        numberOfLines: 1,
     },
     productContainer: {
         padding: 20,
@@ -738,18 +749,18 @@ const styles = StyleSheet.create({
         paddingVertical: 60,
     },
     emptyStateIconContainer: {
-        width: 160,
-        height: 160,
-        borderRadius: 80,
+        width: 120,
+        height: 120,
+        borderRadius: 60,
         backgroundColor: '#FFF7ED',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 10,
     },
     emptyStateImage: {
-        width: 200,
-        height: 200,
-        marginBottom: 20,
+        width: 120,
+        height: 120,
+        marginBottom: 10,
     },
     emptyStateText: {
         fontSize: 18,
