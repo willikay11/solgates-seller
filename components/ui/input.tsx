@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, Text, ViewStyle, ActivityIndicator } from 'react-native';
 import Icon from "react-native-remix-icon";
 
 type InputProps = {
@@ -10,6 +10,9 @@ type InputProps = {
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   prefixComponent?: React.ReactNode;
   error?: string;
+  style?: ViewStyle;
+  loading?: boolean;
+  suffixComponent?: React.ReactNode;
 };
 
 const Input: React.FC<InputProps> = ({
@@ -20,6 +23,9 @@ const Input: React.FC<InputProps> = ({
   prefixComponent,
   keyboardType = 'default',
   error,
+  style,
+  loading = false,
+  suffixComponent,
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -29,7 +35,7 @@ const Input: React.FC<InputProps> = ({
 
   return (
     <View> 
-      <View style={[styles.inputContainer, error && { borderColor: 'red' }]}>
+      <View style={[styles.inputContainer, error && { borderColor: 'red' }, style]}>
         {prefixComponent && <View style={styles.prefix}>{prefixComponent}</View>}
 
         <TextInput
@@ -41,12 +47,20 @@ const Input: React.FC<InputProps> = ({
           keyboardType={keyboardType}     
         />
 
+        {/* Show loading spinner */}
+        {loading && (
+          <View style={styles.iconContainer}>
+            <ActivityIndicator size="small" color="#EA580C" />
+          </View>
+        )}
+
         {/* Show toggle icon only for password input */}
-        {type === 'password' && (
+        {type === 'password' && !loading && (
           <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
             {isPasswordVisible ? <Icon name="eye-line" size={18} color="gray" /> : <Icon name="eye-close-line" size={18} color="gray" />}
           </TouchableOpacity>
         )}
+        {suffixComponent && <View style={styles.suffix}>{suffixComponent}</View>}
       </View>
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
@@ -82,6 +96,15 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     paddingHorizontal: 10,
+  },
+  suffix: {
+    marginLeft: 10,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 5,
+    height: 35,
+    width: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   error: {
     color: '#EF4444',

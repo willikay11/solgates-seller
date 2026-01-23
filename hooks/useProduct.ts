@@ -68,10 +68,10 @@ export const useGetConditions = () => {
     });
 };  
 
-export const useProducts = (storeId?: string, page: number = 1) => {
+export const useProducts = (storeId?: string, page: number = 1, searchQuery?: string) => {
     return useInfiniteQuery({
-        queryKey: ['products', storeId, page],
-        queryFn: () => productService.getProducts(storeId, page),
+        queryKey: ['products', storeId, page, searchQuery],
+        queryFn: () => productService.getProducts(storeId, page, searchQuery),
         getNextPageParam: (products, pages) => {
             return products.meta.currentPage < products.meta.lastPage ? products.meta.currentPage + 1 : undefined;
         },
