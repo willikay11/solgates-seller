@@ -74,6 +74,7 @@ export default function CategoryList({
                                             ? checkedItems === item.id ? 'checked' : 'unchecked'
                                             : checkedItems?.[item.id] ? 'checked' : 'unchecked'
                                         }
+                                        onPress={() => toggleCheck({ id: item.id, label: item.label })}
                                         color="#EA580C"
                                     />
                                     <Text style={{ fontSize: 14 }}>{item.label}</Text>
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
         color: '#1F2937',
         marginTop: 10,
         marginBottom: 5,
-        marginHorizontal: 20,
+        marginHorizontal: 10,
     },
     checkboxContainer: {
         width: '50%',    
