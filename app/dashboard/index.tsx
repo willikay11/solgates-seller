@@ -286,7 +286,7 @@ export default function Dashboard() {
 
             <Modal modalVisible={withdrawVisible} setModalVisible={setWithdrawVisible} title="Withdraw Cash" >
                 <View style={styles.withdrawContainer}>
-                    <Text style={styles.withdrawText}>Enter the number you wish to receive the money on.</Text>
+                    <Text style={[styles.withdrawText, { marginBottom: 10 }]}>Enter the number you wish to receive the money on.</Text>
                     <Text style={styles.withdrawText}>
                         <Text style={styles.withdrawTextBold}>NOTE:</Text> Transaction cost of KES 20.00 will be charged.
                     </Text>
@@ -300,7 +300,10 @@ export default function Dashboard() {
                         <Text style={styles.walletModalBalanceText}>Wallet Balance: KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
                     </View>
                     <Button variant="primary" onPress={handleWithdraw} loading={isWithdrawing} disabled={isWithdrawing}>
-                        <Text style={styles.buttonText}>Withdraw Cash</Text>
+                        <View style={styles.buttonContent}>
+                            {isWithdrawing && <ActivityIndicator size="small" color="#FFFFFF" />}
+                            <Text style={styles.buttonText}>{isWithdrawing ? 'Withdrawing...' : 'Withdraw Cash'}</Text>
+                        </View>
                     </Button>
                 </View>
             </Modal>
