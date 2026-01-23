@@ -17,7 +17,7 @@ export const Modal = ({modalVisible, title, children, setModalVisible}: {modalVi
                 <View style={styles.modalHeader}>
                     <Text style={styles.modalTitle}>{title}</Text>
                     <TouchableOpacity onPress={() => setModalVisible(false)}>
-                        <Icon name="close-line" size={20} color="#000" />
+                        <Icon name="close-line" size={24} color="#000" />
                     </TouchableOpacity>
                 </View>
                 <Divider width="100%" height={1} color="#F3F4F6" />
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
       padding: 20,
     },
     modalTitle: {
-      fontSize: 16,
+      fontSize: 18,
       fontWeight: 'bold',
       color: '#1F2937'
     },

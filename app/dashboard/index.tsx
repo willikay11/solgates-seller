@@ -21,6 +21,7 @@ import Toast from 'react-native-toast-message';
 import * as FileSystem from 'expo-file-system';
 import Share from 'react-native-share'
 import { useLogout } from '@/hooks/useAuth';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Dashboard() {
     const _ = useGetGenders();
@@ -51,6 +52,7 @@ export default function Dashboard() {
     const pathname = usePathname();
     const fadeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+    const [isSharing, setIsSharing] = useState(false);
 
     const handleWithdraw = () => {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
@@ -65,6 +67,7 @@ export default function Dashboard() {
         imageUrl: string;
         title: string;
       }) => {
+        setIsSharing(true);
         try {
           // Step 1: Download image to local cache
           const localUri = FileSystem.cacheDirectory + 'shared-image.jpg';
@@ -95,6 +98,8 @@ export default function Dashboard() {
             text1: 'Error',
             text2: error?.message ?? 'An error occurred',
           });
+        } finally {
+          setIsSharing(false);
         }
       };
 
@@ -246,9 +251,13 @@ export default function Dashboard() {
                             title: `${selectedProduct?.name} - ${selectedProduct?.size.name} on solgates`,
                             message: `Buy ${selectedProduct?.name} | ${selectedProduct?.genders.map(gender => gender.name).join(', ')} | size: ${selectedProduct?.size.name} on solgates, tap https://staging.solgates.com/product/${selectedProduct?.id}`,
                             imageUrl: selectedProduct?.productImageUrls[0].url ?? '' });
-                    }}>
-                        <Icon name="share-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Share Product</Text>
+                    }} disabled={isSharing}>
+                        {isSharing ? (
+                            <ActivityIndicator size="small" color="#1F2937" />
+                        ) : (
+                            <Icon name="share-line" size={14} color="#1F2937" />
+                        )}
+                        <Text style={styles.modalItemText}>{isSharing ? 'Sharing...' : 'Share Product'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem}>
                         <Icon name="file-copy-line" size={14} color="#1F2937" />
@@ -325,7 +334,9 @@ export default function Dashboard() {
                             isWalletAmountVisible ? (
                                 <Text style={styles.walletBalanceText}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
                             ) : (
-                                <Text style={styles.walletBalanceText}>********</Text>
+                                <View style={styles.blurContainer}>
+                                    <Text style={[styles.walletBalanceText, styles.blurredText]}>KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
+                                </View>
                             )
                         }
                         <TouchableOpacity onPress={() => setIsWalletAmountVisible(!isWalletAmountVisible)}>
@@ -334,15 +345,22 @@ export default function Dashboard() {
                     </View>
                 </View>
                 <View style={styles.actionContainer}>
-                    <Button variant="primary" onPress={() => router.push('/products/add')} style={styles.primaryButton}>
-                        <View style={styles.buttonContent}>
-                            <Icon name="add-line" size={20} color="#FFFFFF" />
-                            <Text style={styles.buttonText}>New Product</Text>
-                        </View>
-                    </Button>
+                    <TouchableOpacity onPress={() => router.push('/products/add')} style={styles.primaryButton}>
+                        <LinearGradient
+                            colors={['#FB923C', '#EA580C']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                            style={styles.gradientButton}
+                        >
+                            <View style={styles.buttonContent}>
+                                <Icon name="add-line" size={18} color="#FFFFFF" />
+                                <Text style={styles.buttonText}>New Product</Text>
+                            </View>
+                        </LinearGradient>
+                    </TouchableOpacity>
                     <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
                         <View style={styles.buttonContent}>
-                            <Icon name="arrow-left-down-line" size={20} color="#FFFFFF" />
+                            <Icon name="arrow-left-down-line" size={18} color="#FFFFFF" />
                             <Text style={styles.buttonText}>Withdraw Cash</Text>
                         </View>
                     </Button>
@@ -350,8 +368,12 @@ export default function Dashboard() {
                         title: `View my shop ${user?.storeName} on solgates`,
                         message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,
                         imageUrl: user?.displayImageUrl ?? ''
-                    })} style={styles.iconButton}>
-                        <Icon name="share-line" size={16} color="#ffffff" />
+                    })} style={styles.shareIconButton} disabled={isSharing}>
+                        {isSharing ? (
+                            <ActivityIndicator size="small" color="#ffffff" />
+                        ) : (
+                            <Icon name="share-line" size={18} color="#ffffff" />
+                        )}
                     </Button>
                 </View>
                 </View>
@@ -375,7 +397,7 @@ export default function Dashboard() {
                     {productsList.length === 0 && !isFetching ? (
                         <View style={styles.emptyStateContainer}>
                             <View style={styles.emptyStateIconContainer}>
-                                <Icon name="search-line" size={80} color="#EA580C" />
+                                <Icon name="search-line" size={60} color="#EA580C" />
                             </View>
                             <Text style={styles.emptyStateText}>No products found</Text>
                             {debouncedSearchQuery && (
@@ -413,7 +435,7 @@ export default function Dashboard() {
                                                     setMenuVisible(true)
                                                     setSelectedProduct(item)
                                             }}>
-                                                <Icon name="more-2-fill" size={20} color="#EA580C" />
+                                                <Icon name="more-2-fill" size={24} color="#EA580C" />
                                             </TouchableOpacity>
                                         </View>
                                     </View>
@@ -527,15 +549,45 @@ const styles = StyleSheet.create({
     actionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 10,
     },
     primaryButton: {
-        marginRight: 5,
-        height: 45,
-        borderRadius: 35
+        flex: 1,
+        minWidth: 100,
+        height: 50,
+        borderRadius: 25,
+        overflow: 'hidden',
+        shadowColor: '#F97316',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    gradientButton: {
+        flex: 1,
+        height: 50,
+        borderRadius: 25,
+        paddingHorizontal: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     secondaryButton: {
-        height: 45,
-        borderRadius: 35
+        flex: 1,
+        minWidth: 120,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#5B8DEF',
+        paddingHorizontal: 12,
+    },
+    shareIconButton: {
+        backgroundColor: '#5B8DEF',
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        flexShrink: 0,
     },
     iconButton: {
         marginLeft: 5,
@@ -544,12 +596,12 @@ const styles = StyleSheet.create({
     buttonContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 5
+        gap: 8
     },
     buttonText: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: '#FFFFFF'
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#FFFFFF',
     },
     productContainer: {
         padding: 20,
@@ -557,7 +609,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     productHeaderText: {
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '800',
         color: '#1F2937'
     },
@@ -586,14 +638,16 @@ const styles = StyleSheet.create({
         flex: 1
     },
     productItemText: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '600',
-        color: '#1F2937'
+        color: '#1F2937',
+        lineHeight: 20
     },
     productItemTextDescription: {
         fontSize: 12,
         fontWeight: '500',
-        color: '#6B7280'
+        color: '#6B7280',
+        lineHeight: 20
     },
     productImage: {
         width: 80,
@@ -610,10 +664,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 5,
-        marginBottom: 10
+        marginBottom: 12
     },
     modalItemText: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: 'normal',
         color: '#1F2937'
     },
@@ -643,6 +697,19 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: 10
+    },
+    blurContainer: {
+        borderRadius: 8,
+        overflow: 'hidden',
+        // paddingHorizontal: 8,
+        // paddingVertical: 4,
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    },
+    blurredText: {
+        color: 'transparent',
+        textShadowColor: 'rgba(31, 41, 55, 0.1)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 15,
     },
     walletBalanceContainer: {
         flexDirection: 'row',
@@ -682,18 +749,18 @@ const styles = StyleSheet.create({
         paddingVertical: 60,
     },
     emptyStateIconContainer: {
-        width: 160,
-        height: 160,
-        borderRadius: 80,
+        width: 120,
+        height: 120,
+        borderRadius: 60,
         backgroundColor: '#FFF7ED',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 10,
     },
     emptyStateImage: {
-        width: 200,
-        height: 200,
-        marginBottom: 20,
+        width: 120,
+        height: 120,
+        marginBottom: 10,
     },
     emptyStateText: {
         fontSize: 18,
