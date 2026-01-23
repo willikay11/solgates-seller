@@ -679,7 +679,7 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     withdrawText: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '400',
         color: '#1F2937'
     },
@@ -717,7 +717,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end'
     },
     walletModalBalanceText: {
-        fontSize: 12,
+        fontSize: 14,
         fontWeight: '500',
         color: '#6B7280',
     },
