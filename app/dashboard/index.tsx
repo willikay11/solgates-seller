@@ -43,7 +43,7 @@ export default function Dashboard() {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [amount, setAmount] = useState('');
-    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page);
+    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page, debouncedSearchQuery);
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
@@ -372,6 +372,17 @@ export default function Dashboard() {
                     />
                 </View>
                 <View style={styles.productListContainer}>
+                    {productsList.length === 0 && !isFetching ? (
+                        <View style={styles.emptyStateContainer}>
+                            <View style={styles.emptyStateIconContainer}>
+                                <Icon name="search-line" size={80} color="#EA580C" />
+                            </View>
+                            <Text style={styles.emptyStateText}>No products found</Text>
+                            {debouncedSearchQuery && (
+                                <Text style={styles.emptyStateSubText}>Try adjusting your search</Text>
+                            )}
+                        </View>
+                    ) : (
                     <SwipeListView
                         data={productsList}
                         keyExtractor={(item) => item.id.toString()}
@@ -464,6 +475,7 @@ export default function Dashboard() {
                             return null;
                         }}
                     />
+                    )}
                 </View>
             </View>
         </View>
@@ -662,5 +674,39 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'flex-start',
         justifyContent: 'center',
-    }
+    },
+    emptyStateContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 60,
+    },
+    emptyStateIconContainer: {
+        width: 160,
+        height: 160,
+        borderRadius: 80,
+        backgroundColor: '#FFF7ED',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    emptyStateImage: {
+        width: 200,
+        height: 200,
+        marginBottom: 20,
+    },
+    emptyStateText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#1F2937',
+        textAlign: 'center',
+        marginTop: 10,
+    },
+    emptyStateSubText: {
+        fontSize: 14,
+        fontWeight: '400',
+        color: '#6B7280',
+        textAlign: 'center',
+        marginTop: 5,
+    },
 })
