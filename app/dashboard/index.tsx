@@ -21,6 +21,7 @@ import Toast from 'react-native-toast-message';
 import * as FileSystem from 'expo-file-system';
 import Share from 'react-native-share'
 import { useLogout } from '@/hooks/useAuth';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Dashboard() {
     const _ = useGetGenders();
@@ -334,15 +335,22 @@ export default function Dashboard() {
                     </View>
                 </View>
                 <View style={styles.actionContainer}>
-                    <Button variant="primary" onPress={() => router.push('/products/add')} style={styles.primaryButton}>
-                        <View style={styles.buttonContent}>
-                            <Icon name="add-line" size={20} color="#FFFFFF" />
-                            <Text style={styles.buttonText}>New Product</Text>
-                        </View>
-                    </Button>
+                    <TouchableOpacity onPress={() => router.push('/products/add')} style={styles.primaryButton}>
+                        <LinearGradient
+                            colors={['#FB923C', '#EA580C']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                            style={styles.gradientButton}
+                        >
+                            <View style={styles.buttonContent}>
+                                <Icon name="add-line" size={18} color="#FFFFFF" />
+                                <Text style={styles.buttonText}>New Product</Text>
+                            </View>
+                        </LinearGradient>
+                    </TouchableOpacity>
                     <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
                         <View style={styles.buttonContent}>
-                            <Icon name="arrow-left-down-line" size={20} color="#FFFFFF" />
+                            <Icon name="arrow-left-down-line" size={18} color="#FFFFFF" />
                             <Text style={styles.buttonText}>Withdraw Cash</Text>
                         </View>
                     </Button>
@@ -350,8 +358,8 @@ export default function Dashboard() {
                         title: `View my shop ${user?.storeName} on solgates`,
                         message: `View my shop ${user?.storeName} on solgates, tap https://staging.solgates.com/collection?store=${user?.storeName}`,
                         imageUrl: user?.displayImageUrl ?? ''
-                    })} style={styles.iconButton}>
-                        <Icon name="share-line" size={16} color="#ffffff" />
+                    })} style={styles.shareIconButton}>
+                        <Icon name="share-line" size={18} color="#ffffff" />
                     </Button>
                 </View>
                 </View>
@@ -529,13 +537,38 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     primaryButton: {
-        marginRight: 5,
-        height: 45,
-        borderRadius: 35
+        marginRight: 10,
+        height: 50,
+        borderRadius: 25,
+        overflow: 'hidden',
+        shadowColor: '#F97316',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    gradientButton: {
+        height: 50,
+        borderRadius: 25,
+        paddingHorizontal: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     secondaryButton: {
-        height: 45,
-        borderRadius: 35
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#5B8DEF',
+        paddingHorizontal: 24,
+    },
+    shareIconButton: {
+        marginLeft: 10,
+        backgroundColor: '#5B8DEF',
+        width: 50,
+        height: 50,
+        borderRadius: 25,
     },
     iconButton: {
         marginLeft: 5,
@@ -544,11 +577,11 @@ const styles = StyleSheet.create({
     buttonContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 5
+        gap: 8
     },
     buttonText: {
-        fontSize: 12,
-        fontWeight: 'bold',
+        fontSize: 14,
+        fontWeight: '600',
         color: '#FFFFFF'
     },
     productContainer: {
