@@ -2,9 +2,9 @@ const pkg = require("./package.json");
 
 const APP_ID_PREFIX = "com.solgates.solgatesSeller";
 
-const EAS_APP_OWNER = "willikay11";
-const EAS_PROJECT_ID = "46128557-00c6-4042-8823-8f7075c6b713";
-const EAS_UPDATE_URL = "https://u.expo.dev/46128557-00c6-4042-8823-8f7075c6b713";
+const EAS_APP_OWNER = "tukai-org";
+const EAS_PROJECT_ID = "e3d29ac2-d02c-40d8-ad96-c0a2d8508316";
+const EAS_UPDATE_URL = "https://u.expo.dev/e3d29ac2-d02c-40d8-ad96-c0a2d8508316";
 
 const IS_DEV = process.env.APP_VARIANT === "development";
 const IS_PREVIEW = process.env.APP_VARIANT === "preview";
