@@ -243,7 +243,7 @@ export default function Dashboard() {
     }, [searchQuery])
     
     return (
-        <View style={styles.scrollContainer}>
+        <View style={[styles.scrollContainer, { marginTop: 40 }]}>
             <Modal modalVisible={menuVisible} setModalVisible={setMenuVisible} title="Menu" >
                 <View>
                     <TouchableOpacity style={styles.modalItem} onPress={() => {

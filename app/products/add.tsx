@@ -9,7 +9,7 @@ export default function AddProduct() {
     const navigation = useNavigation();
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container, { marginTop: 40 }]}>
             <TouchableOpacity style={styles.headerContainer} onPress={() => navigation.goBack()} >
                 <Icon name="arrow-left-line" size={24} color="#1F2937" />
                 <Text style={styles.title}>Add New Product</Text>
