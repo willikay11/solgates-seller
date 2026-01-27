@@ -262,7 +262,7 @@ export default function Dashboard() {
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem}>
                         <Icon name="file-copy-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Copy Link</Text>
+                        <Text style={styles.modalItemText}>Copy Product Link</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem} onPress={() => {
                         if (selectedProduct) {
@@ -271,7 +271,7 @@ export default function Dashboard() {
                         }
                     }}>
                         <Icon name="repeat-2-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Edit Item</Text>
+                        <Text style={styles.modalItemText}>Edit Product</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem} onPress={() => {
                         if (selectedProduct) {
@@ -279,7 +279,7 @@ export default function Dashboard() {
                         }
                     }}>
                         <Icon name="delete-bin-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>{isDeleting ? 'Removing...' : 'Remove Item'}</Text>
+                        <Text style={styles.modalItemText}>{isDeleting ? 'Removing...' : 'Remove Product'}</Text>
                         {isDeleting && <ActivityIndicator size="small" color="#1F2937" />}
                     </TouchableOpacity>
                 </View>
@@ -297,9 +297,9 @@ export default function Dashboard() {
                     <View style={styles.inputContainer}>
                         <Input prefixComponent={<Icon name="hand-coin-line" size={14} color="#10B981" />} placeholder="Amount" value={amount} onChangeText={setAmount} keyboardType="numeric" /> 
                     </View>
-                    <View style={styles.walletBalanceContainer}>
+                    {/* <View style={styles.walletBalanceContainer}>
                         <Text style={styles.walletModalBalanceText}>Wallet Balance: KES {numeral(wallet?.availableBalance).format('0,0.00')}</Text>
-                    </View>
+                    </View> */}
                     <Button variant="primary" onPress={handleWithdraw} loading={isWithdrawing} disabled={isWithdrawing}>
                         <View style={styles.buttonContent}>
                             {isWithdrawing && <ActivityIndicator size="small" color="#FFFFFF" />}
@@ -330,8 +330,8 @@ export default function Dashboard() {
                         </View>
                     </View>
                 </View>
-                <Divider width={12} height={2} />
-                <View style={styles.walletContainer}>
+                {/* <Divider width={12} height={2} /> */}
+                {/* <View style={styles.walletContainer}>
                     <Text style={styles.contentHeaderText}>Wallet Balance</Text>
                     <View style={styles.dashboardWalletBalanceContainer}>
                         {
@@ -347,7 +347,7 @@ export default function Dashboard() {
                             {isWalletAmountVisible ? <Icon name="eye-line" size={20} color="#1F2937" /> : <Icon name="eye-close-line" size={20} color="#1F2937" />}
                         </TouchableOpacity>
                     </View>
-                </View>
+                </View> */}
                 <View style={styles.actionContainer}>
                     <TouchableOpacity onPress={() => router.push('/products/add')} style={styles.primaryButton}>
                         <LinearGradient
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
         color: '#1F2937'
     },
     searchContainer: {
-        marginTop: 15,
+        marginTop: 10,
         marginBottom: 10,
     },
     productListContainer: {
