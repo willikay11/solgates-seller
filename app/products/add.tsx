@@ -1,4 +1,4 @@
-import { Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from "react-native";
 import Icon from "react-native-remix-icon";
 import React from "react";
 import { useNavigation } from "expo-router";
@@ -24,6 +24,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
+        marginTop: StatusBar.currentHeight,
     },
     headerContainer: {
         flexDirection: 'row',
