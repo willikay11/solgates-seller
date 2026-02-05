@@ -287,7 +287,7 @@ export default function Dashboard() {
 
             <Modal modalVisible={withdrawVisible} setModalVisible={setWithdrawVisible} title="Withdraw Cash" >
                 <View style={styles.withdrawContainer}>
-                    <Text style={[styles.withdrawText, { marginBottom: 10 }]}>Enter the number you wish to receive the money on.</Text>
+                    {/* <Text style={[styles.withdrawText, { marginBottom: 10 }]}>Enter the number you wish to receive the money on.</Text> */}
                     <Text style={styles.withdrawText}>
                         <Text style={styles.withdrawTextBold}>NOTE:</Text> Transaction cost of KES 20.00 will be charged.
                     </Text>
