@@ -46,7 +46,7 @@ export default function Dashboard() {
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
-    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError, error: updateProductError, data } = useUpdateProduct();
+    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError, error: updateProductError } = useUpdateProduct();
     const pathname = usePathname();
     const fadeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
     const swipeListRef = useRef<any>(null);
@@ -140,7 +140,6 @@ export default function Dashboard() {
     }, [isDeleteSuccess, isDeleteError]);
 
     useEffect(() => {
-        console.log('Update Product Data:', data);
         if (isUpdateProductSuccess) {
             // Close the swipe row
             if (swipeListRef.current && updatingItemId) {
@@ -177,7 +176,7 @@ export default function Dashboard() {
             setUpdatingItemId(null);
             setPendingRemovalItemId(null);
         }
-    }, [isUpdateProductSuccess, isUpdateProductError, data])
+    }, [isUpdateProductSuccess, isUpdateProductError])
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
