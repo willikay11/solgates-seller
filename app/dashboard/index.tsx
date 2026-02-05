@@ -1,7 +1,7 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Platform, BackHandler, Animated, Easing, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, BackHandler, Animated, Easing, RefreshControl, StatusBar } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
@@ -11,14 +11,12 @@ import Input from '@/components/ui/input';
 import { router, usePathname } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
-import * as Sharing from 'expo-sharing';
 import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUpdateProduct } from "@/hooks/useProduct";
 import numeral from 'numeral';
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
 import { Meta } from '@/types/meta';
 import Toast from 'react-native-toast-message';
-import * as FileSystem from 'expo-file-system';
 import Share from 'react-native-share'
 import { useLogout } from '@/hooks/useAuth';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -58,50 +56,35 @@ export default function Dashboard() {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
     }
 
-    const shareProduct = async ({
-        message,
-        imageUrl,
-        title,
-      }: {
-        message: string;
-        imageUrl: string;
-        title: string;
-      }) => {
-        setIsSharing(true);
-        try {
-          // Step 1: Download image to local cache
-          const localUri = FileSystem.cacheDirectory + 'shared-image.jpg';
-          const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
+        const shareProduct = async ({
+                message,
+                imageUrl,
+                title,
+            }: {
+                message: string;
+                imageUrl: string;
+                title: string;
+            }) => {
+                setIsSharing(true);
+                try {
+                    const shareOptions = {
+                        title,
+                        message,
+                        failOnCancel: false,
+                        ...(imageUrl ? { url: imageUrl } : {}),
+                    };
 
-          if (Platform.OS === 'android') {
-            const shareOptions = {
-                title: title,
-                message: message,
-                url: 'file://' + uri.replace('file://', ''), // ensure proper format
-                type: 'image/jpeg',
-                failOnCancel: false,
-              };
-
-              // Step 2a: Android — Use native share + file URI + message
-              await Share.open(shareOptions);
-          } else {
-            // Step 2b: iOS — Share only the image (text won't be shown)
-            await Sharing.shareAsync(uri, {
-              dialogTitle: title,
-              UTI: 'public.jpeg',
-              mimeType: 'image/jpeg',
-            });
-          }
-        } catch (error: any) {
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: error?.message ?? 'An error occurred',
-          });
-        } finally {
-          setIsSharing(false);
-        }
-      };
+                    await Share.open(shareOptions);
+                } catch (error: any) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: error?.message ?? 'An error occurred',
+                    });
+                } finally {
+                    setIsSharing(false);
+                }
+            };
 
     useEffect(() => {
         if (isWithdrawSuccess) {
@@ -348,19 +331,12 @@ export default function Dashboard() {
                     </View>
                 </View>
                 <View style={styles.actionContainer}>
-                    <TouchableOpacity onPress={() => router.push('/products/add')} style={styles.primaryButton}>
-                        <LinearGradient
-                            colors={['#FB923C', '#EA580C']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 0, y: 1 }}
-                            style={styles.gradientButton}
-                        >
-                            <View style={styles.buttonContent}>
-                                <Icon name="add-line" size={18} color="#FFFFFF" />
-                                <Text style={styles.buttonText}>New Product</Text>
-                            </View>
-                        </LinearGradient>
-                    </TouchableOpacity>
+                    <Button onPress={() => router.push('/products/add')} style={styles.primaryButton}>
+                        <View style={styles.buttonContent}>
+                            <Icon name="add-line" size={18} color="#FFFFFF" />
+                            <Text style={styles.buttonText}>New Product</Text>
+                        </View>
+                    </Button>
                     <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
                         <View style={styles.buttonContent}>
                             <Icon name="arrow-left-down-line" size={18} color="#FFFFFF" />
@@ -511,6 +487,7 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flex: 1,
         backgroundColor: 'white',
+        marginTop: StatusBar.currentHeight,
     },
     container: {
         padding: 20,
