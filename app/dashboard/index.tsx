@@ -46,10 +46,12 @@ export default function Dashboard() {
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
-    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError } = useUpdateProduct();
+    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError, error: updateProductError } = useUpdateProduct();
     const pathname = usePathname();
     const fadeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
+    const swipeListRef = useRef<any>(null);
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+    const [pendingRemovalItemId, setPendingRemovalItemId] = useState<string | null>(null);
     const [isSharing, setIsSharing] = useState(false);
 
     const handleWithdraw = () => {
@@ -138,19 +140,41 @@ export default function Dashboard() {
     }, [isDeleteSuccess, isDeleteError]);
 
     useEffect(() => {
-        setUpdatingItemId(null)
         if (isUpdateProductSuccess) {
+            // Close the swipe row
+            if (swipeListRef.current && updatingItemId) {
+                swipeListRef.current.closeAllOpenRows();
+            }
+            
             Toast.show({
                 type: 'success',
                 text1: 'Congratulations',
                 text2: `The product has marked as sold`,
             });
+            
+            // If this was the last item, remove it from the list
+            if (pendingRemovalItemId && fadeAnimations[pendingRemovalItemId]) {
+                Animated.timing(fadeAnimations[pendingRemovalItemId], {
+                    toValue: 0,
+                    duration: 400,
+                    useNativeDriver: true,
+                    easing: Easing.out(Easing.cubic),
+                }).start(() => {
+                    const newList = productsList.filter((i: Product) => i.id.toString() !== pendingRemovalItemId);
+                    setProductsList(newList);
+                    cleanupAnimation(pendingRemovalItemId);
+                    setPendingRemovalItemId(null);
+                });
+            }
+            setUpdatingItemId(null);
         } else if(isUpdateProductError) {
             Toast.show({
                 type: 'error',
-                text1: 'Product sold failed',
-                text2: 'Please try again',
+                text1: 'Failed marking product as sold',
+                text2: (updateProductError as any)?.response?.data?.message || (updateProductError as any)?.message || 'Please try again',
             });
+            setUpdatingItemId(null);
+            setPendingRemovalItemId(null);
         }
     }, [isUpdateProductSuccess, isUpdateProductError])
 
@@ -385,6 +409,7 @@ export default function Dashboard() {
                         </View>
                     ) : (
                     <SwipeListView
+                        ref={swipeListRef}
                         data={productsList}
                         keyExtractor={(item) => item.id.toString()}
                         disableLeftSwipe={true}
@@ -427,32 +452,25 @@ export default function Dashboard() {
                                 <Animated.View style={[
                                     styles.hiddenContainer,
                                     { 
-                                        opacity: updatingItemId === itemId ? 0 : 1,
                                         transform: getFoldingTransform(itemId, index)
                                     }
                                 ]}>
                                     <TouchableOpacity onPress={() => {
                                         const itemId = item.id.toString();
                                         setUpdatingItemId(itemId);
+                                        
+                                        // If this is the last item, mark it for removal on success
                                         if (item.quantity - 1 === 0) {
-                                            // Animate with easeOut effect
-                                            Animated.timing(fadeAnimations[itemId], {
-                                                toValue: 0,
-                                                duration: 400,
-                                                useNativeDriver: true,
-                                                easing: Easing.out(Easing.cubic),
-                                            }).start(() => {
-                                                // After animation completes, update the list
-                                                const newList = productsList.filter((i: Product) => i.id !== item.id);
-                                                setProductsList(newList);
-                                                // Clean up the animation value and reset deleting state
-                                                cleanupAnimation(itemId);
-                                                setUpdatingItemId(null);
-                                            });
+                                            setPendingRemovalItemId(itemId);
                                         }
+                                        
                                         updateProduct({ product: {quantity: `${item.quantity - 1}`}, id: item.id })
-                                    }}>
-                                         <Icon name="shopping-cart-line" size={32} color="red" />
+                                    }} disabled={updatingItemId === itemId}>
+                                         {updatingItemId === itemId ? (
+                                            <ActivityIndicator size="small" color="#EA580C" />
+                                         ) : (
+                                            <Icon name="shopping-cart-line" size={32} color="red" />
+                                         )}
                                     </TouchableOpacity>
                                 </Animated.View>
                             );
