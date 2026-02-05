@@ -1,7 +1,7 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, BackHandler, Animated, Easing, RefreshControl, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Platform, BackHandler, Animated, Easing, RefreshControl } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
@@ -11,12 +11,14 @@ import Input from '@/components/ui/input';
 import { router, usePathname } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
+import * as Sharing from 'expo-sharing';
 import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUpdateProduct } from "@/hooks/useProduct";
 import numeral from 'numeral';
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
 import { Product } from '@/types/product';
 import { Meta } from '@/types/meta';
 import Toast from 'react-native-toast-message';
+import * as FileSystem from 'expo-file-system';
 import Share from 'react-native-share'
 import { useLogout } from '@/hooks/useAuth';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -47,47 +49,60 @@ export default function Dashboard() {
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
-    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError, error: updateProductError } = useUpdateProduct();
+    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError } = useUpdateProduct();
     const pathname = usePathname();
     const fadeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
-    const swipeListRef = useRef<any>(null);
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
-    const [pendingRemovalItemId, setPendingRemovalItemId] = useState<string | null>(null);
     const [isSharing, setIsSharing] = useState(false);
 
     const handleWithdraw = () => {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
     }
 
-        const shareProduct = async ({
-                message,
-                imageUrl,
-                title,
-            }: {
-                message: string;
-                imageUrl: string;
-                title: string;
-            }) => {
-                setIsSharing(true);
-                try {
-                    const shareOptions = {
-                        title,
-                        message,
-                        failOnCancel: false,
-                        ...(imageUrl ? { url: imageUrl } : {}),
-                    };
+    const shareProduct = async ({
+        message,
+        imageUrl,
+        title,
+      }: {
+        message: string;
+        imageUrl: string;
+        title: string;
+      }) => {
+        setIsSharing(true);
+        try {
+          // Step 1: Download image to local cache
+          const localUri = FileSystem.cacheDirectory + 'shared-image.jpg';
+          const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
 
-                    await Share.open(shareOptions);
-                } catch (error: any) {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Error',
-                        text2: error?.message ?? 'An error occurred',
-                    });
-                } finally {
-                    setIsSharing(false);
-                }
-            };
+          if (Platform.OS === 'android') {
+            const shareOptions = {
+                title: title,
+                message: message,
+                url: 'file://' + uri.replace('file://', ''), // ensure proper format
+                type: 'image/jpeg',
+                failOnCancel: false,
+              };
+
+              // Step 2a: Android — Use native share + file URI + message
+              await Share.open(shareOptions);
+          } else {
+            // Step 2b: iOS — Share only the image (text won't be shown)
+            await Sharing.shareAsync(uri, {
+              dialogTitle: title,
+              UTI: 'public.jpeg',
+              mimeType: 'image/jpeg',
+            });
+          }
+        } catch (error: any) {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: error?.message ?? 'An error occurred',
+          });
+        } finally {
+          setIsSharing(false);
+        }
+      };
 
     useEffect(() => {
         if (isWithdrawSuccess) {
@@ -141,41 +156,19 @@ export default function Dashboard() {
     }, [isDeleteSuccess, isDeleteError]);
 
     useEffect(() => {
+        setUpdatingItemId(null)
         if (isUpdateProductSuccess) {
-            // Close the swipe row
-            if (swipeListRef.current && updatingItemId) {
-                swipeListRef.current.closeAllOpenRows();
-            }
-            
             Toast.show({
                 type: 'success',
                 text1: 'Congratulations',
                 text2: `The product has marked as sold`,
             });
-            
-            // If this was the last item, remove it from the list
-            if (pendingRemovalItemId && fadeAnimations[pendingRemovalItemId]) {
-                Animated.timing(fadeAnimations[pendingRemovalItemId], {
-                    toValue: 0,
-                    duration: 400,
-                    useNativeDriver: true,
-                    easing: Easing.out(Easing.cubic),
-                }).start(() => {
-                    const newList = productsList.filter((i: Product) => i.id.toString() !== pendingRemovalItemId);
-                    setProductsList(newList);
-                    cleanupAnimation(pendingRemovalItemId);
-                    setPendingRemovalItemId(null);
-                });
-            }
-            setUpdatingItemId(null);
         } else if(isUpdateProductError) {
             Toast.show({
                 type: 'error',
-                text1: 'Failed marking product as sold',
-                text2: (updateProductError as any)?.response?.data?.message || (updateProductError as any)?.message || 'Please try again',
+                text1: 'Product sold failed',
+                text2: 'Please try again',
             });
-            setUpdatingItemId(null);
-            setPendingRemovalItemId(null);
         }
     }, [isUpdateProductSuccess, isUpdateProductError])
 
@@ -269,7 +262,7 @@ export default function Dashboard() {
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem}>
                         <Icon name="file-copy-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Copy Link</Text>
+                        <Text style={styles.modalItemText}>Copy Product Link</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem} onPress={() => {
                         if (selectedProduct) {
@@ -278,7 +271,7 @@ export default function Dashboard() {
                         }
                     }}>
                         <Icon name="repeat-2-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>Edit Item</Text>
+                        <Text style={styles.modalItemText}>Edit Product</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.modalItem} onPress={() => {
                         if (selectedProduct) {
@@ -286,7 +279,7 @@ export default function Dashboard() {
                         }
                     }}>
                         <Icon name="delete-bin-line" size={14} color="#1F2937" />
-                        <Text style={styles.modalItemText}>{isDeleting ? 'Removing...' : 'Remove Item'}</Text>
+                        <Text style={styles.modalItemText}>{isDeleting ? 'Removing...' : 'Remove Product'}</Text>
                         {isDeleting && <ActivityIndicator size="small" color="#1F2937" />}
                     </TouchableOpacity>
                 </View>
@@ -294,7 +287,7 @@ export default function Dashboard() {
 
             <Modal modalVisible={withdrawVisible} setModalVisible={setWithdrawVisible} title="Withdraw Cash" >
                 <View style={styles.withdrawContainer}>
-                    {/* <Text style={[styles.withdrawText, { marginBottom: 10 }]}>Enter the number you wish to receive the money on.</Text> */}
+                    <Text style={[styles.withdrawText, { marginBottom: 10 }]}>Enter the number you wish to receive the money on.</Text>
                     <Text style={styles.withdrawText}>
                         <Text style={styles.withdrawTextBold}>NOTE:</Text> Transaction cost of KES 20.00 will be charged.
                     </Text>
@@ -356,12 +349,19 @@ export default function Dashboard() {
                     </View>
                 </View> */}
                 <View style={styles.actionContainer}>
-                    <Button onPress={() => router.push('/products/add')} style={styles.primaryButton}>
-                        <View style={styles.buttonContent}>
-                            <Icon name="add-line" size={18} color="#FFFFFF" />
-                            <Text style={styles.buttonText}>New Product</Text>
-                        </View>
-                    </Button>
+                    <TouchableOpacity onPress={() => router.push('/products/add')} style={styles.primaryButton}>
+                        <LinearGradient
+                            colors={['#FB923C', '#EA580C']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                            style={styles.gradientButton}
+                        >
+                            <View style={styles.buttonContent}>
+                                <Icon name="add-line" size={18} color="#FFFFFF" />
+                                <Text style={styles.buttonText}>New Product</Text>
+                            </View>
+                        </LinearGradient>
+                    </TouchableOpacity>
                     <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
                         <View style={styles.buttonContent}>
                             <Icon name="arrow-left-down-line" size={18} color="#FFFFFF" />
@@ -410,7 +410,6 @@ export default function Dashboard() {
                         </View>
                     ) : (
                     <SwipeListView
-                        ref={swipeListRef}
                         data={productsList}
                         keyExtractor={(item) => item.id.toString()}
                         disableLeftSwipe={true}
@@ -453,25 +452,32 @@ export default function Dashboard() {
                                 <Animated.View style={[
                                     styles.hiddenContainer,
                                     { 
+                                        opacity: updatingItemId === itemId ? 0 : 1,
                                         transform: getFoldingTransform(itemId, index)
                                     }
                                 ]}>
                                     <TouchableOpacity onPress={() => {
                                         const itemId = item.id.toString();
                                         setUpdatingItemId(itemId);
-                                        
-                                        // If this is the last item, mark it for removal on success
                                         if (item.quantity - 1 === 0) {
-                                            setPendingRemovalItemId(itemId);
+                                            // Animate with easeOut effect
+                                            Animated.timing(fadeAnimations[itemId], {
+                                                toValue: 0,
+                                                duration: 400,
+                                                useNativeDriver: true,
+                                                easing: Easing.out(Easing.cubic),
+                                            }).start(() => {
+                                                // After animation completes, update the list
+                                                const newList = productsList.filter((i: Product) => i.id !== item.id);
+                                                setProductsList(newList);
+                                                // Clean up the animation value and reset deleting state
+                                                cleanupAnimation(itemId);
+                                                setUpdatingItemId(null);
+                                            });
                                         }
-                                        
                                         updateProduct({ product: {quantity: `${item.quantity - 1}`}, id: item.id })
-                                    }} disabled={updatingItemId === itemId}>
-                                         {updatingItemId === itemId ? (
-                                            <ActivityIndicator size="small" color="#EA580C" />
-                                         ) : (
-                                            <Icon name="shopping-cart-line" size={32} color="red" />
-                                         )}
+                                    }}>
+                                         <Icon name="shopping-cart-line" size={32} color="red" />
                                     </TouchableOpacity>
                                 </Animated.View>
                             );
@@ -506,7 +512,6 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flex: 1,
         backgroundColor: 'white',
-        marginTop: StatusBar.currentHeight,
     },
     container: {
         padding: 20,
@@ -613,7 +618,7 @@ const styles = StyleSheet.create({
         color: '#1F2937'
     },
     searchContainer: {
-        marginTop: 15,
+        marginTop: 10,
         marginBottom: 10,
     },
     productListContainer: {

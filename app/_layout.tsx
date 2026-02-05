@@ -44,7 +44,7 @@ export default function AppLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, marginTop: StatusBar.currentHeight || 0 }}>
         <Slot />
         <Toast config={toastConfig} />
       </SafeAreaView>
