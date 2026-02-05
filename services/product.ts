@@ -149,7 +149,7 @@ export const productService = {
 
             return parseSnakeToCamel(response.data);
         } catch(error: any) {
-            console.log("error =====> ", error.response);
+            // console.log("error =====> ", error.response);
             throw error;
         }
     },
