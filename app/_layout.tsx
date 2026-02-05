@@ -1,7 +1,8 @@
 // app/_layout.tsx
 import { Slot } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import CustomToast from '@/components/ui/custom-toast';
 import { useEffect } from 'react';
@@ -44,7 +45,7 @@ export default function AppLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <SafeAreaView style={{ flex: 1, marginTop: StatusBar.currentHeight || 0 }}>
+      <SafeAreaView style={{ flex: 1 }}>
         <Slot />
         <Toast config={toastConfig} />
       </SafeAreaView>
