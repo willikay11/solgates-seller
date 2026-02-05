@@ -36,9 +36,11 @@ module.exports = function (config) {
   const VERSION = pkg.version;
 
   let apiUrl = "https://api.solgates.com/api/v1";
+  let frontendUrl = "https://solgates.com";
 
   if (IS_DEV || IS_PREVIEW) {
     apiUrl = "https://api.staging.solgates.com/api/v1";
+    frontendUrl = 'https://staging.solgates.com';
   }
 
   return {
@@ -120,6 +122,7 @@ module.exports = function (config) {
           projectId: EAS_PROJECT_ID,
         },
         API_URL: apiUrl,
+        FRONTEND_URL: frontendUrl,
       },
       owner: EAS_APP_OWNER,
       runtimeVersion: "1.0.0",
