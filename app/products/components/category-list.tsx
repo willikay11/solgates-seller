@@ -1,5 +1,6 @@
 import { StyleSheet, View, Text, ActivityIndicator, TouchableWithoutFeedback, Keyboard, KeyboardEvent } from "react-native";
-import { Checkbox, RadioButton } from "react-native-paper";
+import { RadioButton } from "react-native-paper";
+import Checkbox from 'expo-checkbox';
 import { useEffect } from "react";
 
 export type CheckedItems = {
@@ -54,12 +55,13 @@ export default function CategoryList({
                                 <TouchableWithoutFeedback onPress={() => toggleCheck({ id: item.id, label: item.label })}>
                                     <View style={{ flexDirection: 'row', alignItems: 'center', height: 40 }}>
                                     <Checkbox
-                                        status={
+                                        value={
                                         typeof checkedItems === 'string'
-                                            ? checkedItems === item.id ? 'checked' : 'unchecked'
-                                            : checkedItems?.[item.id] ? 'checked' : 'unchecked'
+                                            ? checkedItems === item.id
+                                            : checkedItems?.[item.id] || false
                                         }
                                         color="#EA580C"
+                                        onValueChange={() => toggleCheck({ id: item.id, label: item.label })}
                                     />
                                     <Text style={{ fontSize: 14 }}>{item.label}</Text>
                                     </View>
