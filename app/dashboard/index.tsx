@@ -1,7 +1,7 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, Platform, BackHandler, Animated, Easing, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, BackHandler, Animated, Easing, RefreshControl } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
@@ -11,7 +11,6 @@ import Input from '@/components/ui/input';
 import { router, usePathname } from 'expo-router';
 import { User } from '@/types/user';
 import { useWallet, useWithdraw } from '@/hooks/useWallet';
-import * as Sharing from 'expo-sharing';
 import { useGetBrands, useGetCategories, useGetCategoryTypes, useGetColours, useGetConditions, useGetGenders, useGetSizes, useUpdateProduct } from "@/hooks/useProduct";
 import numeral from 'numeral';
 import { useDeleteProduct, useProducts } from '@/hooks/useProduct';
@@ -59,54 +58,35 @@ export default function Dashboard() {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
     }
 
-        const shareProduct = async ({
-        message,
-        imageUrl,
-        title,
-      }: {
-        message: string;
-        imageUrl: string;
-        title: string;
-      }) => {
-        setIsSharing(true);
-        try {
-            const FileSystem = await import('expo-file-system').then(mod => mod).catch(() => null);
-            if (!FileSystem?.cacheDirectory || !FileSystem?.downloadAsync) {
-                throw new Error('File system module is unavailable. Please rebuild the app.');
-            }
-          // Step 1: Download image to local cache
-          const localUri = FileSystem.cacheDirectory + 'shared-image.jpg';
-          const { uri } = await FileSystem.downloadAsync(imageUrl, localUri);
+            const shareProduct = async ({
+                message,
+                imageUrl,
+                title,
+            }: {
+                message: string;
+                imageUrl: string;
+                title: string;
+            }) => {
+                setIsSharing(true);
+                try {
+                    const shareOptions = {
+                        title,
+                        message,
+                        failOnCancel: false,
+                        ...(imageUrl ? { urls: [imageUrl], type: 'image/jpeg' } : {}),
+                    };
 
-          if (Platform.OS === 'android') {
-            const shareOptions = {
-                title: title,
-                message: message,
-                url: 'file://' + uri.replace('file://', ''), // ensure proper format
-                type: 'image/jpeg',
-                failOnCancel: false,
-              };
-
-              // Step 2a: Android — Use native share + file URI + message
-              await Share.open(shareOptions);
-          } else {
-            // Step 2b: iOS — Share only the image (text won't be shown)
-            await Sharing.shareAsync(uri, {
-              dialogTitle: title,
-              UTI: 'public.jpeg',
-              mimeType: 'image/jpeg',
-            });
-          }
-        } catch (error: any) {
-          Toast.show({
-            type: 'error',
-            text1: 'Error',
-            text2: error?.message ?? 'An error occurred',
-          });
-        } finally {
-          setIsSharing(false);
-        }
-      };
+                    await Share.open(shareOptions);
+                } catch (error: any) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: error?.message ?? 'An error occurred',
+                    });
+                } finally {
+                    setIsSharing(false);
+                }
+            };
 
     useEffect(() => {
         if (isWithdrawSuccess) {
@@ -255,7 +235,6 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        console.log('Products data changed:', products);
         const newProductsList = products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? [];
         setProductsList(newProductsList);
     }, [products])
