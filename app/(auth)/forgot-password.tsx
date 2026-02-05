@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { useAuth } from '@/hooks/useAuth';
-import Input from '@/components/ui/input';
-import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
+import { useForgotPassword } from '@/hooks/useAuth';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Icon from "react-native-remix-icon";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
-  const { sendPasswordResetEmail } = useAuth();
+  const { mutateAsync: sendPasswordResetEmail } = useForgotPassword();
 
   const handleSubmit = async () => {
     try {
@@ -38,31 +38,31 @@ export default function ForgotPassword() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1, 
-      justifyContent: 'flex-start', 
-      alignItems: 'flex-start', 
-      backgroundColor: 'white',
-      padding: 20
-    },
-    inputContainer: {
-      width: '100%',
-      marginBottom: 15
-    },
-    buttonContainer: {
-      width: '100%',
-      alignItems: 'flex-end',
-      marginBottom: 0
-    },
-    title: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginBottom: 20,
-      color: '#374151'
-    },
-    description: {
-      fontSize: 12,
-      marginBottom: 20,
-      color: '#374151'
-    }
-  });
+  container: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    backgroundColor: 'white',
+    padding: 20
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 15
+  },
+  buttonContainer: {
+    width: '100%',
+    alignItems: 'flex-end',
+    marginBottom: 0
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#374151'
+  },
+  description: {
+    fontSize: 12,
+    marginBottom: 20,
+    color: '#374151'
+  }
+});
