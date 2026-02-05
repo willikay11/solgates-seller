@@ -48,7 +48,8 @@ export default function Dashboard() {
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
-    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError, error: updateProductError } = useUpdateProduct();    const pathname = usePathname();
+    const { mutate: updateProduct, isPending: isUpdatingProduct, isSuccess: isUpdateProductSuccess, isError: isUpdateProductError, error: updateProductError } = useUpdateProduct();
+    const pathname = usePathname();
     const fadeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
     const swipeListRef = useRef<any>(null);
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
@@ -181,8 +182,8 @@ export default function Dashboard() {
                     useNativeDriver: true,
                     easing: Easing.out(Easing.cubic),
                 }).start(() => {
-                    const newList = productsList.filter((i: Product) => i.id.toString() !== pendingRemovalItemId);
-                    setProductsList(newList);
+                    // const newList = productsList.filter((i: Product) => i.id.toString() !== pendingRemovalItemId);
+                    // setProductsList(newList);
                     cleanupAnimation(pendingRemovalItemId);
                     setPendingRemovalItemId(null);
                 });
@@ -254,6 +255,7 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
+        console.log('Products data changed:', products);
         const newProductsList = products?.pages.flatMap(page => Array.isArray(page.products) ? page.products : []) ?? [];
         setProductsList(newProductsList);
     }, [products])
@@ -313,7 +315,7 @@ export default function Dashboard() {
 
             <Modal modalVisible={withdrawVisible} setModalVisible={setWithdrawVisible} title="Withdraw Cash" >
                 <View style={styles.withdrawContainer}>
-                    <Text style={[styles.withdrawText, { marginBottom: 10 }]}>Enter the number you wish to receive the money on.</Text>
+                    {/* <Text style={[styles.withdrawText, { marginBottom: 10 }]}>Enter the number you wish to receive the money on.</Text> */}
                     <Text style={styles.withdrawText}>
                         <Text style={styles.withdrawTextBold}>NOTE:</Text> Transaction cost of KES 20.00 will be charged.
                     </Text>
@@ -490,8 +492,13 @@ export default function Dashboard() {
                                         if (item.quantity - 1 === 0) {
                                             setPendingRemovalItemId(itemId);
                                         }
+
+                                        const data: any = { quantity: `${item.quantity - 1}` };
+                                        if (item.quantity - 1 === 0) {
+                                            data['status'] = 3; // Mark as sold if this was the last item
+                                        }
                                         
-                                        updateProduct({ product: {quantity: `${item.quantity - 1}`}, id: item.id })
+                                        updateProduct({ product: data, id: item.id })
                                     }} disabled={updatingItemId === itemId}>
                                          {updatingItemId === itemId ? (
                                             <ActivityIndicator size="small" color="#EA580C" />

@@ -48,7 +48,7 @@ export const productService = {
     },
 
     getProducts: async (storeId?: string, page: number = 1, searchQuery?: string): Promise<Pagination<Product>> => {
-        let url = `/product/list?filter[store_id]=${storeId}&page=${page}`;
+        let url = `/product/list?filter[store_id]=${storeId}&page=${page}&filter[status]=1`;
         if (searchQuery && searchQuery.trim() !== '') {
             url += `&filter[name]=${encodeURIComponent(searchQuery)}`;
         }
@@ -139,6 +139,8 @@ export const productService = {
             
                 data[typedKey] = product[typedKey];
             });
+
+            console.log('Update product payload:', data);
 
             const response = await api.patch(`/product/${id}/update`,data, {
                 headers: {
