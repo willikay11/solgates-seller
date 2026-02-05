@@ -38,13 +38,12 @@ export default function Dashboard() {
     const [isWalletAmountVisible, setIsWalletAmountVisible] = useState(false);
     const [logoutVisible, setLogoutVisible] = useState(false);
     const { data: wallet } = useWallet();
-    const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
     const [productsList, setProductsList] = useState<Product[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [amount, setAmount] = useState('');
-    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page, debouncedSearchQuery);
+    const { data: products, isFetching, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts(user?.storeId, debouncedSearchQuery);
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
@@ -220,8 +219,9 @@ export default function Dashboard() {
         }
     }, [isLogoutSuccess, isLogoutError]);
 
-    const hasMeta = (products: any): products is { meta: Meta } => {
-        return products && typeof products.meta === 'object' && 'total' in products.meta;
+    const getMetaFromPages = (data: any): Meta | undefined => {
+        if (!data?.pages?.length) return undefined;
+        return data.pages[data.pages.length - 1]?.meta;
     };
 
     // Initialize animation values for new items
@@ -264,7 +264,6 @@ export default function Dashboard() {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchQuery(searchQuery);
-            setPage(1); // Reset to first page on new search
         }, 500);
 
         return () => clearTimeout(timer);
@@ -411,7 +410,7 @@ export default function Dashboard() {
                 </View>
                 <Divider width="100%" height={1} color="#F3F4F6" />
                 <View style={styles.productContainer}>
-                <Text style={styles.productHeaderText}>Your Stock ({productsList.length} Products)</Text>
+                <Text style={styles.productHeaderText}>Your Stock ({getMetaFromPages(products)?.total ?? productsList.length} Products)</Text>
                 <View style={styles.searchContainer}>
                     <Input 
                         placeholder="Search products..." 
@@ -426,25 +425,28 @@ export default function Dashboard() {
                     />
                 </View>
                 <View style={styles.productListContainer}>
-                    {productsList.length === 0 && !isFetching ? (
-                        <View style={styles.emptyStateContainer}>
-                            <View style={styles.emptyStateIconContainer}>
-                                <Icon name="search-line" size={60} color="#EA580C" />
-                            </View>
-                            <Text style={styles.emptyStateText}>No products found</Text>
-                            {debouncedSearchQuery && (
-                                <Text style={styles.emptyStateSubText}>Try adjusting your search</Text>
-                            )}
-                        </View>
-                    ) : (
                     <SwipeListView
                         ref={swipeListRef}
                         data={productsList}
                         keyExtractor={(item) => item.id.toString()}
                         disableLeftSwipe={true}
+                        contentContainerStyle={productsList.length === 0 ? { flexGrow: 1 } : undefined}
                         refreshControl={
                             <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor="#EA580C" />
                         }
+                        ListEmptyComponent={() => (
+                            !isFetching ? (
+                                <View style={styles.emptyStateContainer}>
+                                    <View style={styles.emptyStateIconContainer}>
+                                        <Icon name="search-line" size={60} color="#EA580C" />
+                                    </View>
+                                    <Text style={styles.emptyStateText}>No products found</Text>
+                                    {debouncedSearchQuery && (
+                                        <Text style={styles.emptyStateSubText}>Try adjusting your search</Text>
+                                    )}
+                                </View>
+                            ) : null
+                        )}
                         renderItem={({ item, index }: { item: Product; index: number }) => {
                             const itemId = item.id.toString();
                             initializeAnimation(itemId);
@@ -512,8 +514,8 @@ export default function Dashboard() {
                         leftOpenValue={50}
                         rightOpenValue={50}
                         onEndReached={() => {
-                            if (hasMeta(products) && products.meta.currentPage < products.meta.lastPage) {
-                                setPage(products.meta.currentPage + 1);
+                            if (hasNextPage && !isFetchingNextPage) {
+                                fetchNextPage();
                             }
                         }}
                         onEndReachedThreshold={0.5}
@@ -528,7 +530,6 @@ export default function Dashboard() {
                             return null;
                         }}
                     />
-                    )}
                 </View>
             </View>
         </View>
