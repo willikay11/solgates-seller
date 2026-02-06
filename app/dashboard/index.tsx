@@ -60,11 +60,9 @@ export default function Dashboard() {
 
             const shareProduct = async ({
                 message,
-                imageUrl,
                 title,
             }: {
                 message: string;
-                imageUrl: string;
                 title: string;
             }) => {
                 setIsSharing(true);
@@ -73,7 +71,6 @@ export default function Dashboard() {
                         title,
                         message,
                         failOnCancel: false,
-                        ...(imageUrl ? { urls: [imageUrl], type: 'image/jpeg' } : {}),
                     };
 
                     await Share.open(shareOptions);
@@ -257,7 +254,7 @@ export default function Dashboard() {
                         shareProduct({ 
                             title: `${selectedProduct?.name} - ${selectedProduct?.size.name} on solgates`,
                             message: `Buy ${selectedProduct?.name} | ${selectedProduct?.genders.map(gender => gender.name).join(', ')} | size: ${selectedProduct?.size.name} on solgates, tap ${Constants.expoConfig?.extra?.FRONTEND_URL}/product/${selectedProduct?.id}`,
-                            imageUrl: selectedProduct?.productImageUrls[0].url ?? '' });
+                        });
                     }} disabled={isSharing}>
                         {isSharing ? (
                             <ActivityIndicator size="small" color="#1F2937" />
@@ -377,7 +374,6 @@ export default function Dashboard() {
                     <Button variant="icon" onPress={() => shareProduct({
                         title: `View my shop ${user?.storeName} on solgates`,
                         message: `View my shop ${user?.storeName} on solgates, tap ${Constants.expoConfig?.extra?.FRONTEND_URL}/collection?store=${user?.storeName}`,
-                        imageUrl: user?.displayImageUrl ?? ''
                     })} style={styles.shareIconButton} disabled={isSharing}>
                         {isSharing ? (
                             <ActivityIndicator size="small" color="#ffffff" />
