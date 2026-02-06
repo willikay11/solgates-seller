@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, Text, ViewStyle, ActivityIndicator } from 'react-native';
-import Icon from "react-native-remix-icon";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Text,
+  ViewStyle,
+  ActivityIndicator,
+} from 'react-native';
+import Icon from 'react-native-remix-icon';
 
 type InputProps = {
   value?: string;
@@ -34,7 +42,7 @@ const Input: React.FC<InputProps> = ({
   };
 
   return (
-    <View> 
+    <View>
       <View style={[styles.inputContainer, error && { borderColor: 'red' }, style]}>
         {prefixComponent && <View style={styles.prefix}>{prefixComponent}</View>}
 
@@ -44,7 +52,7 @@ const Input: React.FC<InputProps> = ({
           placeholder={placeholder}
           secureTextEntry={type === 'password' && !isPasswordVisible}
           style={styles.input}
-          keyboardType={keyboardType}     
+          keyboardType={keyboardType}
         />
 
         {/* Show loading spinner */}
@@ -57,7 +65,11 @@ const Input: React.FC<InputProps> = ({
         {/* Show toggle icon only for password input */}
         {type === 'password' && !loading && (
           <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
-            {isPasswordVisible ? <Icon name="eye-line" size={18} color="gray" /> : <Icon name="eye-close-line" size={18} color="gray" />}
+            {isPasswordVisible ? (
+              <Icon name="eye-line" size={18} color="gray" />
+            ) : (
+              <Icon name="eye-close-line" size={18} color="gray" />
+            )}
           </TouchableOpacity>
         )}
         {suffixComponent && <View style={styles.suffix}>{suffixComponent}</View>}

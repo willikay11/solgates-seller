@@ -10,12 +10,12 @@ import { useEffect } from 'react';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      networkMode: 'offlineFirst'
+      networkMode: 'offlineFirst',
     },
     mutations: {
-      networkMode: 'offlineFirst'
-    }
-  }
+      networkMode: 'offlineFirst',
+    },
+  },
 });
 
 const toastConfig = {
@@ -37,7 +37,7 @@ export default function AppLayout() {
         });
       }
     };
-  
+
     const interval = setInterval(checkConnection, 3000);
     return () => clearInterval(interval);
   }, []);
@@ -46,8 +46,8 @@ export default function AppLayout() {
     <QueryClientProvider client={queryClient}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       {/* <SafeAreaView style={{ flex: 1 }}> */}
-        <Slot />
-        <Toast config={toastConfig} />
+      <Slot />
+      <Toast config={toastConfig} />
       {/* </SafeAreaView> */}
     </QueryClientProvider>
   );

@@ -1,9 +1,17 @@
 // components/CustomSuccessToast.js
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Icon from "react-native-remix-icon"; 
+import Icon from 'react-native-remix-icon';
 
-const CustomToast = ({ text1, text2, type }: { text1: string, text2: string, type: 'success' | 'error' }) => {
+const CustomToast = ({
+  text1,
+  text2,
+  type,
+}: {
+  text1: string;
+  text2: string;
+  type: 'success' | 'error';
+}) => {
   let iconContainerStyle;
   let iconBackgroundStyle;
   switch (type) {
@@ -24,7 +32,11 @@ const CustomToast = ({ text1, text2, type }: { text1: string, text2: string, typ
     <View style={styles.container}>
       <View style={[styles.iconContainer, iconContainerStyle]}>
         <View style={[styles.iconBackground, iconBackgroundStyle]}>
-          <Icon name={type === 'success' ? 'check-double-line' : 'close-circle-line'} size={20} color={type === 'success' ? '#4CAF50' : '#ef4444'}/>
+          <Icon
+            name={type === 'success' ? 'check-double-line' : 'close-circle-line'}
+            size={20}
+            color={type === 'success' ? '#4CAF50' : '#ef4444'}
+          />
         </View>
       </View>
       <View style={styles.textContainer}>
