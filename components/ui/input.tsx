@@ -50,6 +50,7 @@ const Input: React.FC<InputProps> = ({
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
+          placeholderTextColor="#9CA3AF"
           secureTextEntry={type === 'password' && !isPasswordVisible}
           style={styles.input}
           keyboardType={keyboardType}
