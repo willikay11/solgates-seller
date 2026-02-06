@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
@@ -11,7 +11,7 @@ api.interceptors.request.use(async (config) => {
   const accessToken = JSON.parse(user ?? '{}').accessToken;
 
   config.headers.Authorization = `Bearer ${accessToken}`;
-  
+
   return config;
 });
 
@@ -23,5 +23,5 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
     return Promise.reject(error);
-  }
+  },
 );

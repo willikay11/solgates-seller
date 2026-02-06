@@ -39,7 +39,7 @@ let stringsXml = fs.readFileSync(stringsXmlPath, 'utf8');
 // Replace the app_name
 stringsXml = stringsXml.replace(
   /<string name="app_name">.*?<\/string>/,
-  `<string name="app_name">${appName}</string>`
+  `<string name="app_name">${appName}</string>`,
 );
 
 // Write back to strings.xml

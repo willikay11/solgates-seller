@@ -1,5 +1,13 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, ActivityIndicator, Keyboard } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  ActivityIndicator,
+  Keyboard,
+} from 'react-native';
 
 // Define the types for the Button props
 type ButtonProps = {
@@ -8,11 +16,19 @@ type ButtonProps = {
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
-  children: React.ReactNode; 
+  children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 };
 
-const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children, block = false, style, disabled = false, loading = false }) => {
+const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  onPress,
+  children,
+  block = false,
+  style,
+  disabled = false,
+  loading = false,
+}) => {
   // Apply the styles based on the variant prop
   let buttonStyle;
   let textStyle;
@@ -47,10 +63,14 @@ const Button: React.FC<ButtonProps> = ({ variant = 'primary', onPress, children,
   }
 
   return (
-    <TouchableOpacity style={[styles.button, block && styles.blockButton, buttonStyle, style]} onPress={() => {
-      Keyboard.dismiss();
-      onPress();
-    }} disabled={disabled}>
+    <TouchableOpacity
+      style={[styles.button, block && styles.blockButton, buttonStyle, style]}
+      onPress={() => {
+        Keyboard.dismiss();
+        onPress();
+      }}
+      disabled={disabled}
+    >
       {typeof children === 'string' || typeof children === 'number' ? (
         <Text style={[styles.text, textStyle]}>{children}</Text>
       ) : (

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import Button from '@/components/ui/button';
 import Input from '@/components/ui/input';
-import Icon from "react-native-remix-icon";
+import Icon from 'react-native-remix-icon';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -39,7 +39,9 @@ export default function ResetPassword() {
           prefixComponent={<Icon name="lock-password-line" size={18} color="#10B981" />}
         />
       </View>
-      <Button onPress={handleSubmit} block>Submit</Button>
+      <Button onPress={handleSubmit} block>
+        Submit
+      </Button>
     </View>
   );
 }
@@ -50,26 +52,26 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     backgroundColor: 'white',
-    padding: 20
+    padding: 20,
   },
   inputContainer: {
     width: '100%',
-    marginBottom: 15
+    marginBottom: 15,
   },
   buttonContainer: {
     width: '100%',
     alignItems: 'flex-end',
-    marginBottom: 0
+    marginBottom: 0,
   },
   title: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#374151'
+    color: '#374151',
   },
   description: {
     fontSize: 12,
     marginBottom: 20,
-    color: '#374151'
-  }
+    color: '#374151',
+  },
 });

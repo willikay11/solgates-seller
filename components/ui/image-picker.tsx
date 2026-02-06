@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import Icon from "react-native-remix-icon";
+import Icon from 'react-native-remix-icon';
 import { useUploadImage } from '@/hooks/useProduct';
 
 const MAX_IMAGES = 6;
-type ImagePickerProps = { 
+type ImagePickerProps = {
   onImageUploaded: (url: string[]) => void;
   selectedImages: string[];
   currentIndex: number;
   productId?: string;
-}
-const ImagePickerExample = ({ onImageUploaded, selectedImages, currentIndex, productId }: ImagePickerProps) => {
+};
+const ImagePickerExample = ({
+  onImageUploaded,
+  selectedImages,
+  currentIndex,
+  productId,
+}: ImagePickerProps) => {
   // const [selectedImages, setSelectedImages] = useState(Array(3).fill(null));
   // useEffect(() => {
   //   if (selectedImagesProps) {
@@ -30,12 +35,12 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, currentIndex, pro
       aspect: [1, 1],
       quality: 1,
       allowsMultipleSelection: true,
-      selectionLimit: MAX_IMAGES - selectedImages.filter((image) => image !== '').length
+      selectionLimit: MAX_IMAGES - selectedImages.filter((image) => image !== '').length,
     });
 
     if (!result.canceled) {
       // Handle multiple images
-      const newImages = result.assets.map(asset => asset.uri);
+      const newImages = result.assets.map((asset) => asset.uri);
       onImageUploaded(newImages);
     }
   };
@@ -48,16 +53,15 @@ const ImagePickerExample = ({ onImageUploaded, selectedImages, currentIndex, pro
           style={styles.imageContainer}
           onPress={() => handleSelectImage(index)}
         >
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.image} />
-          ) : null}
+          {imageUri ? <Image source={{ uri: imageUri }} style={styles.image} /> : null}
         </TouchableOpacity>
       ))}
       {selectedImages.length < MAX_IMAGES && (
-        <TouchableOpacity 
-          style={styles.imageButtonContainer} 
-          onPress={() =>handleSelectImage(currentIndex + 1)}>
-            <Icon name="image-line" size={21} color="#2563EB" />
+        <TouchableOpacity
+          style={styles.imageButtonContainer}
+          onPress={() => handleSelectImage(currentIndex + 1)}
+        >
+          <Icon name="image-line" size={21} color="#2563EB" />
         </TouchableOpacity>
       )}
     </View>

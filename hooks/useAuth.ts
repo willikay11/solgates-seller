@@ -1,18 +1,18 @@
-import { authService } from "@/services/authService";
-import { Refresh, User } from "@/types/user";
-import { useMutation } from "@tanstack/react-query";
-import * as SecureStore from "expo-secure-store";
-import moment from "moment";
+import { authService } from '@/services/authService';
+import { Refresh, User } from '@/types/user';
+import { useMutation } from '@tanstack/react-query';
+import * as SecureStore from 'expo-secure-store';
+import moment from 'moment';
 
 export const useLogin = () =>
   useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authService.login(email, password),
     onSuccess: (data: User) => {
-      const newDate = moment().add(data.expiresIn, "seconds").utc();
+      const newDate = moment().add(data.expiresIn, 'seconds').utc();
 
       SecureStore.setItemAsync(
-        "user",
+        'user',
         JSON.stringify({
           id: data.id,
           firstName: data.firstName,
@@ -22,7 +22,7 @@ export const useLogin = () =>
           email: data.email,
           phoneIsVerified: data.phoneIsVerified,
           emailIsVerified: data.emailIsVerified,
-          expiresAt: newDate.format("YYYY-MM-DD HH:mm:ss"),
+          expiresAt: newDate.format('YYYY-MM-DD HH:mm:ss'),
           storeName: data.storeName,
           storeId: data.storeId,
           accessToken: data.accessToken,
@@ -38,17 +38,17 @@ export const useRefreshToken = () =>
     mutationFn: ({ refreshToken }: { refreshToken: string }) =>
       authService.refreshToken(refreshToken),
     onSuccess: async (data: Refresh) => {
-      const newDate = moment().add(data.expiresIn, "seconds").utc();
+      const newDate = moment().add(data.expiresIn, 'seconds').utc();
 
-      const userData = await SecureStore.getItemAsync("user");
+      const userData = await SecureStore.getItemAsync('user');
       if (userData) {
         const currentUser = JSON.parse(userData);
 
         SecureStore.setItemAsync(
-          "user",
+          'user',
           JSON.stringify({
             ...currentUser,
-            expiresAt: newDate.format("YYYY-MM-DD HH:mm:ss"),
+            expiresAt: newDate.format('YYYY-MM-DD HH:mm:ss'),
             accessToken: data.accessToken,
             refreshToken: data.refreshToken,
           }),
@@ -61,7 +61,7 @@ export const useLogout = () =>
   useMutation({
     mutationFn: () => authService.logout(),
     onSuccess: () => {
-      SecureStore.deleteItemAsync("user");
+      SecureStore.deleteItemAsync('user');
     },
   });
 

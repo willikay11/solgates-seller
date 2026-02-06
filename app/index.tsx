@@ -23,12 +23,12 @@ export default function AuthIndex() {
             setReady(true);
             return;
           } else {
-            refreshToken({refreshToken: data?.refreshToken});
+            refreshToken({ refreshToken: data?.refreshToken });
           }
         } else {
-            router.replace('/(auth)')
-            setReady(true);
-            return;
+          router.replace('/(auth)');
+          setReady(true);
+          return;
         }
       } catch (e) {
         console.log('Error reading user data:', e);
@@ -36,40 +36,47 @@ export default function AuthIndex() {
     };
 
     setTimeout(() => {
-        checkSession();
-    }, 5000)
+      checkSession();
+    }, 5000);
   }, []);
 
   useEffect(() => {
-    if(isSuccess) {
-        router.replace('/dashboard');
+    if (isSuccess) {
+      router.replace('/dashboard');
     }
 
     if (isError) {
-        router.replace('/(auth)')
+      router.replace('/(auth)');
     }
-  }, [isSuccess, isError])
+  }, [isSuccess, isError]);
 
   if (!ready) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#EA580C' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#EA580C',
+        }}
+      >
         <StatusBar backgroundColor="#EA580C" barStyle="light-content" />
-        <Image 
-            source={require('@/assets/images/foregroundImage.png')} 
-            style={styles.splashImage}
-            resizeMode="contain"
+        <Image
+          source={require('@/assets/images/foregroundImage.png')}
+          style={styles.splashImage}
+          resizeMode="contain"
         />
       </View>
     );
   }
 
-  return null
+  return null;
 }
 
 const styles = StyleSheet.create({
-    splashImage: {
-        width: '80%',
-        height: 250,
-        marginBottom: 10
-    }
-})
+  splashImage: {
+    width: '80%',
+    height: 250,
+    marginBottom: 10,
+  },
+});
