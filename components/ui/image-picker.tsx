@@ -31,7 +31,7 @@ const ImagePickerExample = ({
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
+      allowsEditing: false,
       aspect: [1, 1],
       quality: 1,
       allowsMultipleSelection: true,
