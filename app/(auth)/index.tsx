@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, Alert, Linking } from 'react-native';
+import { View, Text, Image, StyleSheet, Alert, Linking, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import Button from '@/components/ui/button';
 import { useLogin } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
@@ -44,45 +44,57 @@ export default function Login() {
   }, [isSuccess, isError]);
 
   return (
-    <View style={styles.container}>
-      <Image 
-        source={require('@/assets/images/logo.png')} 
-        style={styles.logo}
-        resizeMode="contain"
-      />
-      <Text style={styles.title}>Welcome Back!</Text>
-      <View style={styles.inputContainer}>
-        <Input
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Enter your email"
-            type="text"
-            prefixComponent={<Icon name="at-line" size={18} color="#F59E0B" />}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Image 
+          source={require('@/assets/images/logo.png')} 
+          style={styles.logo}
+          resizeMode="contain"
         />
-      </View>
-      <Input
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Enter your password"
-        type="password"
-        prefixComponent={<Icon name="key-2-line" size={18} color="#3B82F6" />}
-      />
-      <View style={styles.buttonContainer}>
-        <Button variant="text" onPress={() => handleForgotPassword()}>Forgot Password?</Button>
-      </View>
-      <Button onPress={handleLogin} block loading={isSigningIn} disabled={isSigningIn}>
-        {isSigningIn ? 'Signing In...' : 'Sign In'}
-      </Button>
-    </View>
+        <Text style={styles.title}>Welcome Back!</Text>
+        <View style={styles.inputContainer}>
+          <Input
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              type="text"
+              prefixComponent={<Icon name="at-line" size={18} color="#F59E0B" />}
+          />
+        </View>
+        <Input
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Enter your password"
+          type="password"
+          prefixComponent={<Icon name="key-2-line" size={18} color="#3B82F6" />}
+        />
+        <View style={styles.buttonContainer}>
+          <Button variant="text" onPress={() => handleForgotPassword()}>Forgot Password?</Button>
+        </View>
+        <Button onPress={handleLogin} block loading={isSigningIn} disabled={isSigningIn}>
+          {isSigningIn ? 'Signing In...' : 'Sign In'}
+        </Button>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+    flex: 1,  
     backgroundColor: 'white',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20
   },
   inputContainer: {
