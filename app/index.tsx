@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import moment from 'moment';
 import { useRefreshToken } from '@/hooks/useAuth';
 import { User } from '@/types/user';
+import { updateService } from '@/utils/update';
 
 export default function AuthIndex() {
   const router = useRouter();
@@ -49,6 +50,14 @@ export default function AuthIndex() {
       router.replace('/(auth)');
     }
   }, [isSuccess, isError]);
+
+  useEffect(() => {
+    updateService.checkForUpdates();
+    updateService.startBackgroundUpdateCheck();
+    return () => {
+      updateService.stopBackgroundUpdateCheck();
+    };
+  }, []);
 
   if (!ready) {
     return (
