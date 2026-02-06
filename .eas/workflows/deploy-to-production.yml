@@ -3,7 +3,7 @@ name: Deploy to production
 on:
   push:
     branches:
-      - production
+      - main
 
 jobs:
   fingerprint:
@@ -59,7 +59,7 @@ jobs:
     if: ${{ needs.get_android_build.outputs.build_id }}
     type: update
     params:
-      branch: production
+      branch: main
       platform: android
   publish_ios_update:
     name: Publish iOS update
@@ -67,5 +67,5 @@ jobs:
     if: ${{ needs.get_ios_build.outputs.build_id }}
     type: update
     params:
-      branch: production
+      branch: main
       platform: ios
