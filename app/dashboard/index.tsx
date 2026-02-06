@@ -1,7 +1,7 @@
 import React from 'react';
 import Divider from '@/components/ui/divider';
 import * as SecureStore from 'expo-secure-store';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, BackHandler, Animated, Easing, RefreshControl, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator, BackHandler, Animated, Easing, RefreshControl } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import Icon from "react-native-remix-icon";
 import Button from '@/components/ui/button';
@@ -37,13 +37,12 @@ export default function Dashboard() {
     const [isWalletAmountVisible, setIsWalletAmountVisible] = useState(false);
     const [logoutVisible, setLogoutVisible] = useState(false);
     const { data: wallet } = useWallet();
-    const [page, setPage] = useState(1);
     const [user, setUser] = useState<User | null>(null);
     const [productsList, setProductsList] = useState<Product[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
     const [amount, setAmount] = useState('');
-    const { data: products, isFetching, refetch, isRefetching } = useProducts(user?.storeId, page, debouncedSearchQuery);
+    const { data: products, isFetching, refetch, isRefetching, fetchNextPage, hasNextPage, isFetchingNextPage } = useProducts(user?.storeId, debouncedSearchQuery);
     const { mutate: logout, isPending: isLoggingOut, isSuccess: isLogoutSuccess, isError: isLogoutError } = useLogout();
     const { mutate: deleteProduct, isPending: isDeleting, isSuccess: isDeleteSuccess, isError: isDeleteError } = useDeleteProduct();
     const { mutate: withdraw, isPending: isWithdrawing, isSuccess: isWithdrawSuccess, isError: isWithdrawError } = useWithdraw();
@@ -59,7 +58,7 @@ export default function Dashboard() {
         withdraw({ amount: parseFloat(amount), phoneNumber: user?.phoneNumber ?? '' });
     }
 
-        const shareProduct = async ({
+            const shareProduct = async ({
                 message,
                 imageUrl,
                 title,
@@ -74,7 +73,7 @@ export default function Dashboard() {
                         title,
                         message,
                         failOnCancel: false,
-                        ...(imageUrl ? { url: imageUrl } : {}),
+                        ...(imageUrl ? { urls: [imageUrl], type: 'image/jpeg' } : {}),
                     };
 
                     await Share.open(shareOptions);
@@ -141,12 +140,13 @@ export default function Dashboard() {
     }, [isDeleteSuccess, isDeleteError]);
 
     useEffect(() => {
+        setUpdatingItemId(null)
         if (isUpdateProductSuccess) {
             // Close the swipe row
             if (swipeListRef.current && updatingItemId) {
                 swipeListRef.current.closeAllOpenRows();
             }
-            
+
             Toast.show({
                 type: 'success',
                 text1: 'Congratulations',
@@ -161,21 +161,20 @@ export default function Dashboard() {
                     useNativeDriver: true,
                     easing: Easing.out(Easing.cubic),
                 }).start(() => {
-                    const newList = productsList.filter((i: Product) => i.id.toString() !== pendingRemovalItemId);
-                    setProductsList(newList);
+                    // const newList = productsList.filter((i: Product) => i.id.toString() !== pendingRemovalItemId);
+                    // setProductsList(newList);
                     cleanupAnimation(pendingRemovalItemId);
                     setPendingRemovalItemId(null);
                 });
             }
             setUpdatingItemId(null);
+
         } else if(isUpdateProductError) {
             Toast.show({
                 type: 'error',
                 text1: 'Failed marking product as sold',
                 text2: (updateProductError as any)?.response?.data?.message || (updateProductError as any)?.message || 'Please try again',
             });
-            setUpdatingItemId(null);
-            setPendingRemovalItemId(null);
         }
     }, [isUpdateProductSuccess, isUpdateProductError])
 
@@ -200,8 +199,9 @@ export default function Dashboard() {
         }
     }, [isLogoutSuccess, isLogoutError]);
 
-    const hasMeta = (products: any): products is { meta: Meta } => {
-        return products && typeof products.meta === 'object' && 'total' in products.meta;
+    const getMetaFromPages = (data: any): Meta | undefined => {
+        if (!data?.pages?.length) return undefined;
+        return data.pages[data.pages.length - 1]?.meta;
     };
 
     // Initialize animation values for new items
@@ -243,7 +243,6 @@ export default function Dashboard() {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearchQuery(searchQuery);
-            setPage(1); // Reset to first page on new search
         }, 500);
 
         return () => clearTimeout(timer);
@@ -357,10 +356,17 @@ export default function Dashboard() {
                 </View> */}
                 <View style={styles.actionContainer}>
                     <Button onPress={() => router.push('/products/add')} style={styles.primaryButton}>
-                        <View style={styles.buttonContent}>
-                            <Icon name="add-line" size={18} color="#FFFFFF" />
-                            <Text style={styles.buttonText}>New Product</Text>
-                        </View>
+                        {/* <LinearGradient
+                            colors={['#FB923C', '#EA580C']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 0, y: 1 }}
+                            style={styles.gradientButton}
+                        > */}
+                            <View style={styles.buttonContent}>
+                                <Icon name="add-line" size={18} color="#FFFFFF" />
+                                <Text style={styles.buttonText}>New Product</Text>
+                            </View>
+                        {/* </LinearGradient> */}
                     </Button>
                     <Button variant="secondary" onPress={() => setWithdrawVisible(true)} style={styles.secondaryButton}>
                         <View style={styles.buttonContent}>
@@ -383,7 +389,7 @@ export default function Dashboard() {
                 </View>
                 <Divider width="100%" height={1} color="#F3F4F6" />
                 <View style={styles.productContainer}>
-                <Text style={styles.productHeaderText}>Your Stock ({productsList.length} Products)</Text>
+                <Text style={styles.productHeaderText}>Your Stock ({getMetaFromPages(products)?.total ?? productsList.length} Products)</Text>
                 <View style={styles.searchContainer}>
                     <Input 
                         placeholder="Search products..." 
@@ -398,25 +404,28 @@ export default function Dashboard() {
                     />
                 </View>
                 <View style={styles.productListContainer}>
-                    {productsList.length === 0 && !isFetching ? (
-                        <View style={styles.emptyStateContainer}>
-                            <View style={styles.emptyStateIconContainer}>
-                                <Icon name="search-line" size={60} color="#EA580C" />
-                            </View>
-                            <Text style={styles.emptyStateText}>No products found</Text>
-                            {debouncedSearchQuery && (
-                                <Text style={styles.emptyStateSubText}>Try adjusting your search</Text>
-                            )}
-                        </View>
-                    ) : (
                     <SwipeListView
                         ref={swipeListRef}
                         data={productsList}
                         keyExtractor={(item) => item.id.toString()}
                         disableLeftSwipe={true}
+                        contentContainerStyle={productsList.length === 0 ? { flexGrow: 1 } : undefined}
                         refreshControl={
                             <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor="#EA580C" />
                         }
+                        ListEmptyComponent={() => (
+                            !isFetching ? (
+                                <View style={styles.emptyStateContainer}>
+                                    <View style={styles.emptyStateIconContainer}>
+                                        <Icon name="search-line" size={60} color="#EA580C" />
+                                    </View>
+                                    <Text style={styles.emptyStateText}>No products found</Text>
+                                    {debouncedSearchQuery && (
+                                        <Text style={styles.emptyStateSubText}>Try adjusting your search</Text>
+                                    )}
+                                </View>
+                            ) : null
+                        )}
                         renderItem={({ item, index }: { item: Product; index: number }) => {
                             const itemId = item.id.toString();
                             initializeAnimation(itemId);
@@ -464,8 +473,13 @@ export default function Dashboard() {
                                         if (item.quantity - 1 === 0) {
                                             setPendingRemovalItemId(itemId);
                                         }
+
+                                        const data: any = { quantity: `${item.quantity - 1}` };
+                                        if (item.quantity - 1 === 0) {
+                                            data['status'] = 3; // Mark as sold if this was the last item
+                                        }
                                         
-                                        updateProduct({ product: {quantity: `${item.quantity - 1}`}, id: item.id })
+                                        updateProduct({ product: data, id: item.id })
                                     }} disabled={updatingItemId === itemId}>
                                          {updatingItemId === itemId ? (
                                             <ActivityIndicator size="small" color="#EA580C" />
@@ -479,8 +493,8 @@ export default function Dashboard() {
                         leftOpenValue={50}
                         rightOpenValue={50}
                         onEndReached={() => {
-                            if (hasMeta(products) && products.meta.currentPage < products.meta.lastPage) {
-                                setPage(products.meta.currentPage + 1);
+                            if (hasNextPage && !isFetchingNextPage) {
+                                fetchNextPage();
                             }
                         }}
                         onEndReachedThreshold={0.5}
@@ -495,7 +509,6 @@ export default function Dashboard() {
                             return null;
                         }}
                     />
-                    )}
                 </View>
             </View>
         </View>
@@ -506,7 +519,6 @@ const styles = StyleSheet.create({
     scrollContainer: {
         flex: 1,
         backgroundColor: 'white',
-        marginTop: StatusBar.currentHeight,
     },
     container: {
         padding: 20,

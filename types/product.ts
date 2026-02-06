@@ -33,6 +33,7 @@ export interface EditProduct {
   genders?: string[];
   productUrls?: { url: string }[];
   sizeId?: string;
+  status?: number;
 }
 
 export interface Product {

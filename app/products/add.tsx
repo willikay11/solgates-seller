@@ -24,7 +24,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: 'white',
-        marginTop: StatusBar.currentHeight,
     },
     headerContainer: {
         flexDirection: 'row',
