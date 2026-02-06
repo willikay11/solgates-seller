@@ -13,7 +13,7 @@ export default function EditProduct() {
     const { data: product, isLoading: isLoadingProduct } = useGetProductById(id as string);
 
     return (
-        <ScrollView style={[styles.container, { marginTop: 40 }]}>
+        <ScrollView style={[styles.container, { marginTop: 40, marginBottom: 40 }]}>
             <TouchableOpacity style={styles.headerContainer} onPress={() => navigation.goBack()} >
                 <Icon name="arrow-left-line" size={24} color="#1F2937" />
                 <Text style={styles.title}>Edit Product</Text>
