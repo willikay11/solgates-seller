@@ -109,6 +109,8 @@ module.exports = function (config) {
           },
         ],
         './plugins/withAppName',
+        ["expo-updates", { username: "solgates-seller" }],
+        "expo-background-task",
       ],
       experiments: {
         typedRoutes: true,
